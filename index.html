@@ -12,6 +12,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Compilador Babel para rodar TSX/JSX no navegador sem Build Step -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -45,6 +48,11 @@
       }
     </script>
     <style>
+      html, body, #root {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
       body {
         background-color: #050505;
         color: #ffffff;
@@ -73,15 +81,23 @@
   <script type="importmap">
 {
   "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.10.1",
-    "firebase/": "https://esm.sh/firebase@^12.7.0/",
-    "dotenv": "https://esm.sh/dotenv@^17.2.3",
+    "react": "https://esm.sh/react@18.2.0?dev",
+    "react/": "https://esm.sh/react@18.2.0/?dev",
+    "react-dom": "https://esm.sh/react-dom@18.2.0?dev",
+    "react-dom/": "https://esm.sh/react-dom@18.2.0/?dev",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client?dev",
+    "react-router-dom": "https://esm.sh/react-router-dom@6.22.3?dev",
+    "firebase/app": "https://esm.sh/firebase@10.8.1/app",
+    "firebase/auth": "https://esm.sh/firebase@10.8.1/auth",
+    "firebase/firestore": "https://esm.sh/firebase@10.8.1/firestore",
+    "firebase/analytics": "https://esm.sh/firebase@10.8.1/analytics",
+    "firebase/messaging": "https://esm.sh/firebase@10.8.1/messaging",
+    "dotenv": "https://esm.sh/dotenv@16.4.5",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.7",
     "firebase-admin/": "https://esm.sh/firebase-admin@^13.6.0/",
-    "path": "https://esm.sh/path@^0.12.7",
+    "firebase/": "https://esm.sh/firebase@^12.7.0/",
     "fs": "https://esm.sh/fs@^0.0.1-security",
+    "path": "https://esm.sh/path@^0.12.7",
     "@prisma/client": "https://esm.sh/@prisma/client@^7.1.0"
   }
 }
@@ -89,5 +105,7 @@
 </head>
   <body>
     <div id="root"></div>
+    <!-- Script com type="text/babel" para o Babel processar o TSX -->
+    <script type="text/babel" data-type="module" src="./index.tsx" data-presets="typescript,react"></script>
   </body>
 </html>

@@ -4,15 +4,13 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAnalytics } from "firebase/analytics";
 import { getMessaging } from "firebase/messaging";
 
-// Configuração do Firebase via Variáveis de Ambiente (Vite)
-// As chaves estão no arquivo .env na raiz do projeto
-// Casting to any to avoid TypeScript errors with import.meta.env if types are missing
-const env = (import.meta as any).env;
+// Fallback seguro para evitar crash se import.meta.env não existir (comum em setups sem Vite puro)
+const env = (import.meta as any).env || {};
 
 const firebaseConfig = {
-  apiKey: env.VITE_FIREBASE_API_KEY,
-  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: env.VITE_FIREBASE_PROJECT_ID,
+  apiKey: env.VITE_FIREBASE_API_KEY || "mock_key",
+  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || "mock_domain",
+  projectId: env.VITE_FIREBASE_PROJECT_ID || "mock_project",
   storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: env.VITE_FIREBASE_APP_ID,
@@ -23,19 +21,21 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-// Messaging é suportado apenas em ambientes seguros (HTTPS ou localhost)
-export const messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
 
-// Inicializa Analytics apenas no ambiente do navegador
+// Messaging e Analytics seguros para browser
+export const messaging = typeof window !== 'undefined' ? (async () => {
+    try {
+        return getMessaging(app); 
+    } catch (e) {
+        console.warn("Messaging not supported"); 
+        return null;
+    }
+})() : null;
+
 export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
-// Conectar automaticamente ao emulador se estivermos em ambiente de desenvolvimento local
-// Defina VITE_USE_EMULATOR=true no .env para ativar, caso contrário usa o projeto real
-if (typeof window !== 'undefined' && location.hostname === "localhost" && env?.VITE_USE_EMULATOR === 'true') {
+// Conectar ao emulador apenas se configurado explicitamente
+if (typeof window !== 'undefined' && location.hostname === "localhost" && env.VITE_USE_EMULATOR === 'true') {
   console.log('🔥 Conectando ao Firebase Emulator Suite...');
-  // Auth Emulator na porta 9099
-  // connectAuthEmulator(auth, "http://127.0.0.1:9099");
-  
-  // Firestore Emulator na porta 8080
   connectFirestoreEmulator(db, '127.0.0.1', 8080);
 }

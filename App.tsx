@@ -1,17 +1,17 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
-import { AuthProvider, useAuth } from './store';
-import { Welcome } from './pages/Onboarding';
-import { Dashboard } from './pages/Dashboard';
-import { CreateSession } from './pages/Session';
-import { SessionDetails } from './pages/SessionDetails';
-import { Marketplace } from './pages/Marketplace';
-import { Register } from './pages/Register';
-import { Profile } from './pages/Profile';
-import { Chat } from './pages/Chat';
-import { Notifications } from './pages/Notifications';
-import { Terms, Privacy, Support } from './pages/StaticPages';
-import { Logo } from './components/Logo';
+import { AuthProvider, useAuth } from './store.tsx';
+import { Welcome } from './pages/Onboarding.tsx';
+import { Dashboard } from './pages/Dashboard.tsx';
+import { CreateSession } from './pages/Session.tsx';
+import { SessionDetails } from './pages/SessionDetails.tsx';
+import { Marketplace } from './pages/Marketplace.tsx';
+import { Register } from './pages/Register.tsx';
+import { Profile } from './pages/Profile.tsx';
+import { Chat } from './pages/Chat.tsx';
+import { Notifications } from './pages/Notifications.tsx';
+import { Terms, Privacy, Support } from './pages/StaticPages.tsx';
+import { Logo } from './components/Logo.tsx';
 
 // Layout Component
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
