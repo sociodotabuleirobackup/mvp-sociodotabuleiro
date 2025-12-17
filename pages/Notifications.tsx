@@ -1,6 +1,8 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../store';
-import { useNavigate } from 'react-router-dom';
+// Changed react-router-dom to react-router to fix missing export errors
+import { useNavigate } from 'react-router';
 import { requestNotificationPermission } from '../services/notifications';
 
 export const Notifications: React.FC = () => {

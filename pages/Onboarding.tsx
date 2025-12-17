@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+// Changed react-router-dom to react-router to fix missing export errors
+import { useNavigate, Link } from 'react-router';
 import { useAuth } from '../store';
 import { UserRole } from '../types';
 import { Logo } from '../components/Logo';
@@ -30,7 +32,6 @@ export const Welcome: React.FC = () => {
   };
 
   const handleRoleSelect = (role: UserRole) => {
-    // Navigate to registration wizard instead of direct login
     navigate(`/register/${role}`);
   };
 
@@ -52,7 +53,6 @@ export const Welcome: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background p-6 flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Background Decor */}
       <div className="absolute top-[-20%] left-[-20%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-[-20%] right-[-20%] w-[500px] h-[500px] bg-accent/10 rounded-full blur-[100px] pointer-events-none"></div>
 
@@ -98,7 +98,6 @@ const LoginForm: React.FC<{ onBack: () => void; onLogin: (role: UserRole) => voi
 
   return (
     <div className="min-h-screen bg-background p-6 flex flex-col items-center justify-center relative overflow-hidden">
-        {/* Background effects */}
         <div className="absolute top-[-20%] left-[-20%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
         <div className="absolute bottom-[-20%] right-[-20%] w-[500px] h-[500px] bg-accent/10 rounded-full blur-[100px] pointer-events-none"></div>
 
@@ -138,14 +137,13 @@ const LoginForm: React.FC<{ onBack: () => void; onLogin: (role: UserRole) => voi
                   </div>
 
                   <button 
-                      onClick={() => onLogin(UserRole.MASTER)} // Default action
+                      onClick={() => onLogin(UserRole.MASTER)}
                       className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold text-lg shadow-[0_0_20px_rgba(107,38,217,0.4)] transition-all transform active:scale-95 mt-2"
                   >
                       Entrar
                   </button>
               </div>
 
-              {/* Demo Tools for MVP */}
               <div className="mt-8 pt-6 border-t border-white/5 text-center">
                   <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-3">Simular Login como (MVP)</p>
                   <div className="flex justify-center gap-2">
@@ -163,8 +161,6 @@ const LoginForm: React.FC<{ onBack: () => void; onLogin: (role: UserRole) => voi
 const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ onStart, onLogin }) => {
   return (
     <div className="bg-background min-h-screen text-white overflow-x-hidden selection:bg-primary selection:text-white">
-      
-      {/* HEADER LOGIN */}
       <nav className="absolute top-0 w-full p-6 flex justify-between items-center z-50">
         <div className="flex items-center gap-2">
            <Logo className="h-10 w-10 drop-shadow-[0_0_8px_rgba(107,38,217,0.5)]" />
@@ -178,9 +174,7 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
         </button>
       </nav>
 
-      {/* 1) HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center px-6 py-20">
-        {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?q=80&w=2831&auto=format&fit=crop" 
@@ -191,17 +185,14 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto text-center space-y-8">
-          
           <h1 className="text-5xl md:text-7xl font-fantasy font-bold leading-tight text-white drop-shadow-2xl">
             A SOBERANIA DA <br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-light via-white to-primary-light">IMAGINAÇÃO</span>
           </h1>
-
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto font-display font-light">
             Você passou anos construindo mundos inteiros. <br className="hidden md:block"/>
             Nós construímos o trono onde você deve sentar.
           </p>
-
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-4">
             <button 
               onClick={onStart}
@@ -216,46 +207,29 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
               Ler o Manifesto
             </button>
           </div>
-
-          <p className="text-xs text-gray-500 font-mono pt-4">
+          <div className="text-xs text-gray-500 font-mono pt-4 text-center">
             Acesso antecipado. Sem cartão para cadastro inicial. Cancelamento livre.
-          </p>
+          </div>
         </div>
       </section>
 
-      {/* 2) MANIFESTO */}
       <section id="manifesto" className="py-24 px-6 relative bg-surface">
         <div className="max-w-3xl mx-auto text-center space-y-8">
           <h2 className="text-3xl md:text-5xl font-fantasy font-bold text-gray-100">
             A ERA DA INOCÊNCIA ACABOU.
           </h2>
           <div className="space-y-6 text-lg text-gray-400 font-sans leading-relaxed">
-            <p>
-              Disseram que era “apenas um jogo”. Disseram para você crescer.
-              <strong className="text-white block mt-2 text-xl">Eles estavam errados.</strong>
-            </p>
-            <p>
-              Enquanto o mundo lá fora simula produtividade em reuniões vazias e planilhas cinzas, você gerenciava economias complexas. Você liderava exércitos. Você resolvia crises políticas em mundos que só existiam na sua mente.
-            </p>
-            <p className="text-primary-light italic font-serif text-2xl border-l-4 border-primary pl-6 py-2 my-8 text-left">
-              "Você não estava brincando. Você estava treinando."
-            </p>
-            <p>
-              O <strong>Sócio do Tabuleiro</strong> não é “um app de agenda”.
-              É a infraestrutura que transforma a sua imaginação em <strong>sistema</strong>, em <strong>mercado</strong>, em <strong>carreira</strong>.
-            </p>
-            <p className="text-xl text-white font-display">
-              Porque a imaginação é o petróleo do século 21. <br/>
-              E petróleo sem refinaria é só poça no chão.
-            </p>
+            <p>Disseram que era “apenas um jogo”. Disseram para você crescer. <strong className="text-white block mt-2 text-xl">Eles estavam errados.</strong></p>
+            <p>Enquanto o world lá fora simula produtividade em reuniões vazias e planilhas cinzas, você gerenciava economias complexas. Você liderava exércitos. Você resolvia crises políticas em mundos que só existiam na sua mente.</p>
+            <p className="text-primary-light italic font-serif text-2xl border-l-4 border-primary pl-6 py-2 my-8 text-left">"Você não estava brincando. Você estava treinando."</p>
+            <p>O <strong>Sócio do Tabuleiro</strong> não é “um app de agenda”. É a infraestrutura que transforma a sua imaginação em <strong>sistema</strong>, em <strong>mercado</strong>, em <strong>carreira</strong>.</p>
+            <p className="text-xl text-white font-display">Porque a imaginação é o petróleo do século 21. <br/> E petróleo sem refinaria é só poça no chão.</p>
           </div>
         </div>
       </section>
 
-      {/* 3) ARQUÉTIPOS */}
       <section className="py-24 px-6 bg-background">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* MESTRE */}
           <ArchetypeCard 
             title="PARA O MESTRE"
             subtitle="(O CRIADOR)"
@@ -268,8 +242,6 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
               "IA de Aventuras: enredo, ganchos e NPCs"
             ]}
           />
-          
-          {/* LOJISTA */}
           <ArchetypeCard 
             title="PARA A LUDERIA"
             subtitle="(O TEMPLO)"
@@ -283,8 +255,6 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
             ]}
             highlight
           />
-
-          {/* JOGADOR */}
           <ArchetypeCard 
             title="PARA O JOGADOR"
             subtitle="(O VIAJANTE)"
@@ -300,7 +270,6 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
         </div>
       </section>
 
-      {/* 4) TECNOLOGIA */}
       <section className="py-24 px-6 bg-surface/50 border-y border-white/5">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -313,7 +282,7 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
             <TechItem 
               icon="verified_user" 
               title="Segurança e Identidade" 
-              desc="Conta, acesso, perfis e permissões com base sólida (Firebase). Menos gambiarra. Mais controle." 
+              desc="Conta, acesso, perfis e permissões com base sólida (Supabase). Menos gambiarra. Mais controle." 
             />
             <TechItem 
               icon="gavel" 
@@ -344,32 +313,17 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
         </div>
       </section>
 
-      {/* 5) SOCIAL PROOF */}
       <section className="py-24 px-6 bg-background">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-xs font-bold tracking-widest text-accent uppercase mb-12">Quem já assumiu o controle</h2>
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Testimonial 
-              quote="Antes eu tinha vergonha de cobrar. Quando coloquei no papel o tempo de preparação, entendi meu valor. Hoje, tenho agenda e respeito."
-              author="Lucas F."
-              role="Mestre Profissional"
-            />
-            <Testimonial 
-              quote="Minha loja ficava morta durante a semana. Agora tenho mesas fixas rodando e o consumo acompanha."
-              author="Carlos A."
-              role="Dono de Luderia"
-            />
-            <Testimonial 
-              quote="Eu só queria jogar sem dor de cabeça. Agora eu encontro mesas perto de mim, vejo avaliações e já sai tudo organizado."
-              author="Marina S."
-              role="Jogadora"
-            />
+            <Testimonial quote="Antes eu tinha vergonha de cobrar. Quando coloquei no papel o tempo de preparação, entendi meu valor. Hoje, tenho agenda e respeito." author="Lucas F." role="Mestre Profissional" />
+            <Testimonial quote="Minha loja ficava morta durante a semana. Agora tenho mesas fixas rodando e o consumo acompanha." author="Carlos A." role="Dono de Luderia" />
+            <Testimonial quote="Eu só queria jogar sem dor de cabeça. Agora eu encontro mesas perto de mim, vejo avaliações e já sai tudo organizado." author="Marina S." role="Jogadora" />
           </div>
         </div>
       </section>
 
-      {/* 6) RODAPÉ / ULTIMATO */}
       <footer className="py-12 px-6 bg-surface border-t border-white/10 relative z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-3">
@@ -379,16 +333,12 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
               <p className="text-xs text-gray-500">Onde sua imaginação ganha poder.</p>
             </div>
           </div>
-
           <div className="flex gap-6 text-sm text-gray-400">
             <Link to="/terms" className="hover:text-white transition-colors">Termos de Uso</Link>
             <Link to="/privacy" className="hover:text-white transition-colors">Privacidade</Link>
             <Link to="/help" className="hover:text-white transition-colors">Suporte</Link>
           </div>
-
-          <p className="text-xs text-gray-600">
-            &copy; 2025 Sócio do Tabuleiro. Todos os direitos reservados.
-          </p>
+          <p className="text-xs text-gray-600">&copy; 2025 Sócio do Tabuleiro. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>
@@ -397,7 +347,6 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
 
 const ArchetypeCard: React.FC<{ title: string; subtitle: string; quote: string; image: string; features: string[]; highlight?: boolean }> = ({ title, subtitle, quote, image, features, highlight }) => (
   <div className={`relative group overflow-hidden rounded-2xl border ${highlight ? 'border-accent/50 shadow-[0_0_30px_rgba(255,184,0,0.1)]' : 'border-white/10'} bg-surface transition-all hover:border-white/30`}>
-    {/* Image Header */}
     <div className="h-48 relative overflow-hidden">
       <div className="absolute inset-0 bg-black/40 z-10"></div>
       <img src={image} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
@@ -406,7 +355,6 @@ const ArchetypeCard: React.FC<{ title: string; subtitle: string; quote: string; 
         <span className="text-xs font-display tracking-widest text-gray-300 uppercase">{subtitle}</span>
       </div>
     </div>
-
     <div className="p-6 space-y-6">
       <p className="text-xl font-serif italic text-gray-200">{quote}</p>
       <div className="h-px bg-white/10 w-full"></div>
@@ -444,10 +392,7 @@ const Testimonial: React.FC<{ quote: string; author: string; role: string }> = (
 );
 
 const RoleCard: React.FC<{ icon: string; title: string; desc: string; onClick: () => void }> = ({ icon, title, desc, onClick }) => (
-  <button 
-    onClick={onClick}
-    className="group relative p-5 rounded-2xl glass-panel text-left hover:border-primary/50 transition-all duration-300 hover:-translate-y-1 w-full bg-surface/50"
-  >
+  <button onClick={onClick} className="group relative p-5 rounded-2xl glass-panel text-left hover:border-primary/50 transition-all duration-300 hover:-translate-y-1 w-full bg-surface/50">
     <div className="flex items-start gap-4">
       <div className="w-12 h-12 rounded-xl bg-surface flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors text-primary border border-white/5">
         <span className="material-symbols-outlined text-2xl">{icon}</span>

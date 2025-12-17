@@ -12,7 +12,6 @@
     "db:generate": "pnpm --filter @socio/db db:generate",
     "db:migrate": "pnpm --filter @socio/db db:migrate:dev",
     "db:seed": "pnpm --filter @socio/db db:seed",
-    "seed:firestore": "tsx scripts/seed-firestore.ts",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "keywords": [
@@ -20,8 +19,7 @@
     "boardgames",
     "marketplace",
     "prisma",
-    "supabase",
-    "firebase"
+    "supabase"
   ],
   "author": "Sócio do Tabuleiro Team",
   "license": "MIT",
@@ -29,8 +27,6 @@
     "@prisma/client": "^5.10.0",
     "@supabase/supabase-js": "^2.39.7",
     "dotenv": "^16.4.5",
-    "firebase": "^10.8.1",
-    "firebase-admin": "^11.11.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.3"

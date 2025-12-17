@@ -1,13 +1,13 @@
-import { getToken, onMessage, Messaging } from "firebase/messaging";
-import { messagingPromise } from "../firebase/client";
 
-const VAPID_KEY = "BFL-T2HJMbYYetA0Haw4sZ7-q6OMV9hTOey7J0UduAG4mXmcfIwKQmr7jguKiostLEWVs0AUGghcyTjq93akmyg";
+/**
+ * Service de Notificações
+ * Refatorado para remover Firebase. 
+ * Futuramente pode integrar com Supabase Realtime ou Web Push nativo.
+ */
 
 export const requestNotificationPermission = async (): Promise<string | null> => {
-  const messaging: Messaging | null = await messagingPromise;
-  
-  if (!messaging) {
-    console.warn("Messaging não suportado neste navegador.");
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    console.warn("Notificações não suportadas neste navegador.");
     return null;
   }
 
@@ -16,33 +16,20 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
     
     if (permission === 'granted') {
       console.log('Permissão de notificação concedida.');
-      
-      const currentToken = await getToken(messaging, { 
-        vapidKey: VAPID_KEY 
-      });
-
-      if (currentToken) {
-        console.log('Token FCM obtido:', currentToken);
-        return currentToken;
-      } else {
-        console.log('Nenhum token de registro disponível.');
-        return null;
-      }
+      // Simula um token para manter compatibilidade com a UI
+      return "mock_push_token_" + Math.random().toString(36).substring(7);
     } else {
       console.log('Permissão de notificação negada.');
       return null;
     }
   } catch (error) {
-    console.error('Um erro ocorreu ao tentar recuperar o token.', error);
+    console.error('Erro ao solicitar permissão de notificação.', error);
     return null;
   }
 };
 
 export const onForegroundMessage = async () => {
-  const messaging: Messaging | null = await messagingPromise;
-  if (!messaging) return;
-  
-  return onMessage(messaging, (payload) => {
-    console.log('Mensagem recebida em primeiro plano:', payload);
-  });
+  // Placeholder para lógica de escuta em tempo real via Supabase
+  console.log('Listener de mensagens em primeiro plano ativado (Stub).');
+  return () => {};
 };

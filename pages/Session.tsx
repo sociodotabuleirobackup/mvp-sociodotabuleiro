@@ -1,5 +1,7 @@
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// Changed react-router-dom to react-router to fix missing export errors
+import { useNavigate } from 'react-router';
 import { useAuth } from '../store';
 import { ContractStatus, SessionStatus } from '../types';
 

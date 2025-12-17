@@ -1,5 +1,7 @@
+
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// Changed react-router-dom to react-router to fix missing export errors
+import { Link, useNavigate } from 'react-router';
 import { Logo } from '../components/Logo';
 
 const StaticLayout: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => {

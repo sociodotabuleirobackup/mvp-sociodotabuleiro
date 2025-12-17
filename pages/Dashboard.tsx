@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { useAuth } from '../store';
 import { UserRole } from '../types';
-import { Link } from 'react-router-dom';
+// Changed react-router-dom to react-router to fix missing export errors
+import { Link } from 'react-router';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();

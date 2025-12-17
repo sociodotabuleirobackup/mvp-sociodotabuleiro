@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+// Changed react-router-dom to react-router to fix missing export errors
+import { useParams, useNavigate } from 'react-router';
 import { useAuth } from '../store';
 import { Session, UserRole, BookingStatus, SessionStatus, GeoCoordinates } from '../types';
 import { asaas } from '../services/asaas';
@@ -156,7 +158,7 @@ export const SessionDetails: React.FC = () => {
             </div>
 
             <div className="glass-panel p-6 rounded-xl">
-              <h3 className="text-lg font-bold mb-3 font-display">Sobre a Aventura</h3>
+              <h3 className="text-lg font-bold mb-3 font-display">About the Adventure</h3>
               <p className="text-gray-300 leading-relaxed text-sm whitespace-pre-line">
                 {session.description}
               </p>
@@ -167,7 +169,7 @@ export const SessionDetails: React.FC = () => {
               <div className="glass-panel p-6 rounded-xl border border-white/10">
                 <h3 className="text-lg font-bold mb-4 font-display flex items-center gap-2">
                    <span className="material-symbols-outlined text-primary">admin_panel_settings</span>
-                   Gestão da Sessão
+                   Session Management
                 </h3>
                 <div className="flex gap-3">
                    {session.status !== SessionStatus.COMPLETED && session.status !== SessionStatus.CANCELED && (
@@ -176,19 +178,19 @@ export const SessionDetails: React.FC = () => {
                           onClick={() => handleStatusChange(SessionStatus.CANCELED)}
                           className="px-4 py-2 bg-red-500/10 border border-red-500/50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors text-sm font-bold"
                         >
-                          Cancelar Sessão
+                          Cancel Session
                         </button>
                         <button 
                           onClick={() => handleStatusChange(SessionStatus.COMPLETED)}
                           className="px-4 py-2 bg-green-500/10 border border-green-500/50 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition-colors text-sm font-bold"
                         >
-                          Concluir Sessão
+                          Finish Session
                         </button>
                      </>
                    )}
                    {session.status === SessionStatus.COMPLETED && (
                       <span className="text-green-500 font-bold text-sm flex items-center gap-2">
-                        <span className="material-symbols-outlined">check_circle</span> Sessão Finalizada
+                        <span className="material-symbols-outlined">check_circle</span> Session Finished
                       </span>
                    )}
                 </div>
@@ -205,22 +207,22 @@ export const SessionDetails: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold mb-1 font-display">
-                    {session.locationType === 'ONLINE' ? 'Sessão Online' : session.venueName}
+                    {session.locationType === 'ONLINE' ? 'Online Session' : session.venueName}
                   </h3>
-                  <p className="text-gray-400 text-sm">{session.venueAddress || 'Link será enviado após confirmação.'}</p>
+                  <p className="text-gray-400 text-sm">{session.venueAddress || 'Link will be sent after confirmation.'}</p>
                   
                   {/* Distance Indicator */}
                   {session.locationType === 'VENUE' && (
                     <div className="mt-2 flex items-center gap-2 text-xs">
                       {locLoading ? (
-                        <span className="text-gray-500 animate-pulse">Calculando distância...</span>
+                        <span className="text-gray-500 animate-pulse">Calculating distance...</span>
                       ) : distance ? (
                         <span className="bg-primary/20 text-primary px-2 py-0.5 rounded flex items-center gap-1 font-bold">
                           <span className="material-symbols-outlined text-[10px]">near_me</span>
-                          {distance} de você
+                          {distance} from you
                         </span>
                       ) : (
-                        <span className="text-gray-600">Localização indisponível</span>
+                        <span className="text-gray-600">Location unavailable</span>
                       )}
                     </div>
                   )}
@@ -233,7 +235,7 @@ export const SessionDetails: React.FC = () => {
                   className="w-full sm:w-auto px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors"
                 >
                   <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg" alt="Maps" className="w-5 h-5" />
-                  Como Chegar
+                  Get Directions
                 </button>
               )}
             </div>
@@ -244,7 +246,7 @@ export const SessionDetails: React.FC = () => {
              <div className="glass-panel p-6 rounded-xl sticky top-20 border border-white/10 shadow-2xl bg-surface/90 backdrop-blur-xl">
                 <div className="flex justify-between items-end mb-6">
                    <div>
-                     <span className="text-gray-400 text-xs uppercase tracking-wide">Valor por Jogador</span>
+                     <span className="text-gray-400 text-xs uppercase tracking-wide">Value per Player</span>
                      <div className="text-3xl font-bold text-white font-display">R$ {session.price.toFixed(0)}</div>
                    </div>
                    <div className="text-right">
@@ -252,38 +254,38 @@ export const SessionDetails: React.FC = () => {
                         <span className="material-symbols-outlined text-sm">group</span>
                         {session.playersCurrent}/{session.playersMax}
                      </div>
-                     <span className="text-[10px] text-green-400">Vagas disponíveis</span>
+                     <span className="text-[10px] text-green-400">Spots available</span>
                    </div>
                 </div>
 
                 {/* Booking Logic UI */}
                 {!isPlayer ? (
                    <div className="p-3 bg-white/5 rounded-lg text-center text-gray-500 text-sm">
-                     {isMaster ? 'Você é o Mestre desta mesa.' : 'Faça login como Jogador para reservar.'}
+                     {isMaster ? 'You are the Master of this table.' : 'Log in as Player to book.'}
                    </div>
                 ) : bookingStatus === BookingStatus.CONFIRMED ? (
                    <div className="bg-green-500/20 border border-green-500/50 p-4 rounded-xl text-center">
                       <span className="material-symbols-outlined text-4xl text-green-400 mb-2">check_circle</span>
-                      <h3 className="font-bold text-white mb-1">Presença Confirmada!</h3>
-                      <p className="text-xs text-green-300 mb-4">Sua vaga está garantida.</p>
+                      <h3 className="font-bold text-white mb-1">Confirmed!</h3>
+                      <p className="text-xs text-green-300 mb-4">Your spot is guaranteed.</p>
                       <button className="w-full py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold text-sm">
-                        Adicionar ao Calendar
+                        Add to Calendar
                       </button>
                    </div>
                 ) : bookingStatus === BookingStatus.PENDING_PAYMENT ? (
                    <div className="space-y-3">
                       <div className="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded-lg text-xs text-yellow-200">
-                        Sua vaga está reservada por 15 minutos. Realize o pagamento para confirmar.
+                        Your spot is reserved for 15 minutes. Complete the payment to confirm.
                       </div>
                       <button 
                         onClick={handlePay}
                         disabled={loading}
                         className="w-full py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold shadow-lg flex justify-center items-center gap-2"
                       >
-                         {loading ? 'Processando...' : (
+                         {loading ? 'Processing...' : (
                            <>
                              <span className="material-symbols-outlined">pix</span>
-                             Pagar com Pix
+                             Pay with Pix
                            </>
                          )}
                       </button>
@@ -294,13 +296,13 @@ export const SessionDetails: React.FC = () => {
                     disabled={loading || session.playersCurrent >= session.playersMax || session.status !== SessionStatus.PUBLISHED}
                     className="w-full py-4 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold text-lg shadow-[0_0_20px_rgba(107,38,217,0.4)] transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {session.status !== SessionStatus.PUBLISHED ? 'Mesa Fechada' : loading ? 'Reservando...' : 'Reservar Vaga'}
+                    {session.status !== SessionStatus.PUBLISHED ? 'Table Closed' : loading ? 'Booking...' : 'Reserve Spot'}
                   </button>
                 )}
 
                 <div className="mt-6 pt-4 border-t border-white/10">
                    <p className="text-[10px] text-center text-gray-500">
-                     Garantia de reembolso em caso de cancelamento pelo mestre.
+                     Refund guarantee if canceled by the master.
                    </p>
                 </div>
              </div>

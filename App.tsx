@@ -1,5 +1,7 @@
+
 import React from 'react';
-import { HashRouter, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
+// Import from 'react-router' instead of 'react-router-dom' to resolve export errors in this environment
+import { HashRouter, Routes, Route, Navigate, useLocation, Link } from 'react-router';
 import { AuthProvider, useAuth } from './store.tsx';
 import { Welcome } from './pages/Onboarding.tsx';
 import { Dashboard } from './pages/Dashboard.tsx';
