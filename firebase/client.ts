@@ -2,9 +2,8 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAnalytics } from "firebase/analytics";
-import { getMessaging } from "firebase/messaging";
+import { getMessaging, Messaging } from "firebase/messaging";
 
-// Fallback seguro para evitar crash se import.meta.env não existir (comum em setups sem Vite puro)
 const env = (import.meta as any).env || {};
 
 const firebaseConfig = {
@@ -22,19 +21,18 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Messaging e Analytics seguros para browser
-export const messaging = typeof window !== 'undefined' ? (async () => {
+// Exportamos como uma Promise para lidar com a inicialização assíncrona
+export const messagingPromise: Promise<Messaging | null> = typeof window !== 'undefined' ? (async () => {
     try {
         return getMessaging(app); 
     } catch (e) {
         console.warn("Messaging not supported"); 
         return null;
     }
-})() : null;
+})() : Promise.resolve(null);
 
 export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
-// Conectar ao emulador apenas se configurado explicitamente
 if (typeof window !== 'undefined' && location.hostname === "localhost" && env.VITE_USE_EMULATOR === 'true') {
   console.log('🔥 Conectando ao Firebase Emulator Suite...');
   connectFirestoreEmulator(db, '127.0.0.1', 8080);
