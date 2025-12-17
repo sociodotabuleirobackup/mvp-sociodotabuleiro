@@ -1,10 +1,9 @@
 
-import { Session, Booking, User, Asset, BookingStatus, SessionStatus } from '../types';
-import { COLLECTIONS } from '../firebase/schema';
+import { Session, Booking, User, Asset, BookingStatus } from '../types';
 
 /**
  * Data Access Layer Stub
- * This isolates Firestore logic from UI logic.
+ * Adaptado para interagir com Prisma/Supabase no futuro.
  */
 
 class Repository {
@@ -16,13 +15,12 @@ class Repository {
   
   async createSession(session: Omit<Session, 'id'>): Promise<string> {
     await this.delay(500);
-    console.log(`[Repo] Creating session in ${COLLECTIONS.SESSIONS}`, session);
-    return `sess_${Math.random().toString(36).substr(2, 9)}`;
+    console.log(`[Repo] Criando sessão no banco de dados relacional`, session);
+    return `sess_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   async getSessions(filter?: any): Promise<Session[]> {
     await this.delay(300);
-    // Mock return
     return [];
   }
 
@@ -30,20 +28,20 @@ class Repository {
 
   async createBooking(booking: Omit<Booking, 'id' | 'status' | 'createdAt'>): Promise<string> {
     await this.delay(500);
-    console.log(`[Repo] Creating booking in ${COLLECTIONS.BOOKINGS}`, booking);
-    return `book_${Math.random().toString(36).substr(2, 9)}`;
+    console.log(`[Repo] Criando reserva (booking)`, booking);
+    return `book_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   async updateBookingStatus(bookingId: string, status: BookingStatus): Promise<void> {
     await this.delay(300);
-    console.log(`[Repo] Updating booking ${bookingId} to ${status}`);
+    console.log(`[Repo] Atualizando reserva ${bookingId} para ${status}`);
   }
 
   // --- Marketplace ---
 
   async purchaseAsset(userId: string, assetId: string): Promise<boolean> {
     await this.delay(1000);
-    console.log(`[Repo] Recording purchase in ${COLLECTIONS.PURCHASES}: User ${userId} -> Asset ${assetId}`);
+    console.log(`[Repo] Registrando compra: Usuário ${userId} -> Ativo ${assetId}`);
     return true;
   }
 }

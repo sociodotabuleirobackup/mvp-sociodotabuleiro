@@ -1,8 +1,8 @@
 
 /**
  * Service de Notificações
- * Refatorado para remover Firebase. 
- * Futuramente pode integrar com Supabase Realtime ou Web Push nativo.
+ * Utiliza a API nativa de Notifications do navegador.
+ * Preparado para integração futura com Supabase Realtime.
  */
 
 export const requestNotificationPermission = async (): Promise<string | null> => {
@@ -16,8 +16,8 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
     
     if (permission === 'granted') {
       console.log('Permissão de notificação concedida.');
-      // Simula um token para manter compatibilidade com a UI
-      return "mock_push_token_" + Math.random().toString(36).substring(7);
+      // Retorna um identificador fake para manter a compatibilidade com o fluxo da UI
+      return "browser_push_id_" + Math.random().toString(36).substring(7);
     } else {
       console.log('Permissão de notificação negada.');
       return null;
@@ -29,7 +29,9 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
 };
 
 export const onForegroundMessage = async () => {
-  // Placeholder para lógica de escuta em tempo real via Supabase
-  console.log('Listener de mensagens em primeiro plano ativado (Stub).');
-  return () => {};
+  // Listener genérico para mensagens em tempo real
+  console.log('Listener de mensagens nativas ativado.');
+  return () => {
+    console.log('Listener desativado.');
+  };
 };

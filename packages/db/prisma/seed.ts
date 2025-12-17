@@ -1,3 +1,4 @@
+
 import { PrismaClient, UserRole, SessionStatus, BookingStatus, ContractStatus } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -5,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Iniciando sementeira (seed) do Sócio do Tabuleiro...");
 
-  // 1. Criar Usuários (Master, Player, Venue Owner)
+  // 1. Criar Usuários
   console.log("... Criando Perfis");
   
   const master = await prisma.user.upsert({
@@ -67,7 +68,7 @@ async function main() {
     },
   });
 
-  // 3. Criar Sessão (Session)
+  // 3. Criar Sessão
   console.log("... Criando Sessão");
   const session = await prisma.session.create({
     data: {
@@ -89,7 +90,7 @@ async function main() {
     },
   });
 
-  // 4. Criar Reserva (Booking)
+  // 4. Criar Reserva
   console.log("... Criando Reserva");
   await prisma.booking.create({
     data: {
@@ -108,7 +109,6 @@ async function main() {
       sessionId: session.id,
       participantIds: [master.uid, player.uid],
       lastMessage: "Obrigado por aceitar minha ficha!",
-      updatedAt: new Date(),
       participants: {
         connect: [{ uid: master.uid }, { uid: player.uid }]
       },
@@ -127,6 +127,7 @@ async function main() {
 main()
   .catch((e) => {
     console.error("❌ Erro durante o seed:", e);
+    // Use casting to any to fix the TypeScript error where exit might not be detected on process type
     (process as any).exit(1);
   })
   .finally(async () => {
