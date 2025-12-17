@@ -1,0 +1,70 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // USERS: Público pode ler perfil básico, apenas dono edita sensíveis
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // CONTRACTS & TERMS: Estritamente privado
+    match /contracts/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    match /terms_acceptances/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // SESSIONS: Regra de Negócio Crítica (Contrato)
+    match /sessions/{sessionId} {
+      allow read: if true;
+      allow create: if isSignedIn() 
+                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'MASTER'
+                    && (request.resource.data.status == 'DRAFT' || 
+                        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.founderPactStatus == 'SIGNED');
+      allow update: if resource.data.masterId == request.auth.uid;
+    }
+
+    // BOOKINGS: Apenas Mestre ou Jogador envolvido
+    match /bookings/{bookingId} {
+      allow read: if isSignedIn() && (resource.data.playerId == request.auth.uid || resource.data.masterId == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update: if resource.data.masterId == request.auth.uid || resource.data.playerId == request.auth.uid; // Para cancelar
+    }
+
+    // CHATS: Apenas participantes
+    match /chats/{chatId} {
+      allow read, write: if request.auth.uid in resource.data.participantIds;
+      
+      match /messages/{msgId} {
+        allow read, write: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds;
+      }
+    }
+
+    // MARKETPLACE
+    match /marketplace_assets/{assetId} {
+      allow read: if true;
+      allow write: if false; // Admin only via Admin SDK
+    }
+    
+    match /adventure_purchases/{purchaseId} {
+      allow read: if resource.data.userId == request.auth.uid;
+      allow create: if isOwner(request.resource.data.userId);
+    }
+    
+    // LEDGER: Somente leitura para o usuário (escrita via Backend/Functions)
+    match /ledger/{entryId} {
+      allow read: if resource.data.uid == request.auth.uid;
+      allow write: if false; 
+    }
+  }
+}
