@@ -20,6 +20,8 @@
     "db:seed": "pnpm --filter @socio-do-tabuleiro/database db:seed",
     "db:studio": "pnpm --filter @socio-do-tabuleiro/database db:studio",
     "db:reset": "pnpm --filter @socio-do-tabuleiro/database db:reset",
+    "db:push": "pnpm --filter @socio-do-tabuleiro/database db:push",
+    "db:setup": "./scripts/db-setup.sh",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:build": "docker compose build --no-cache",

@@ -8,19 +8,34 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ===== CORE MODELS =====
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
   avatar    String?
   role      UserRole @default(PLAYER)
+  phone     String?
+  cpf       String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  reviews     Review[]
-  bookings    Booking[]
+  // Profiles
   masterProfile MasterProfile?
   storeProfile  StoreProfile?
+
+  // Relations
+  bookings      Booking[]
+  reviews       Review[]
+  chatMessages  ChatMessage[]
+  notifications Notification[]
+  purchases     Purchase[]
+  foodOrders    FoodOrder[]
+  achievements  UserAchievement[]
+  ledgerEntries LedgerEntry[]
+  subscriptions Subscription[]
+  adventures    Adventure[]
 
   @@map("users")
 }
@@ -34,6 +49,7 @@ model MasterProfile {
   experience  Int    @default(0)
   rating      Float  @default(0)
   totalGames  Int    @default(0)
+  specialties String[] // RPG systems they specialize in
   
   sessions    Session[]
   
@@ -41,41 +57,98 @@ model MasterProfile {
 }
 
 model StoreProfile {
-  id       String @id @default(cuid())
-  userId   String @unique
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String @id @default(cuid())
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   storeName String
   cnpj      String? @unique
   address   String?
   phone     String?
+  latitude  Float?
+  longitude Float?
   
+  venues    Venue[]
   sessions  Session[]
+  foodMenus FoodMenu[]
   
   @@map("store_profiles")
 }
 
+// ===== VENUE & TABLES =====
+
+model Venue {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  address     String
+  latitude    Float?
+  longitude   Float?
+  capacity    Int    @default(0)
+  amenities   String[] // ["wifi", "parking", "food", "drinks"]
+  
+  storeId     String
+  store       StoreProfile @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  tables      Table[]
+  sessions    Session[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("venues")
+}
+
+model Table {
+  id        String @id @default(cuid())
+  number    String
+  capacity  Int
+  isActive  Boolean @default(true)
+  
+  venueId   String
+  venue     Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  
+  sessions  Session[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([venueId, number])
+  @@map("tables")
+}
+
+// ===== SESSIONS & BOOKINGS =====
+
 model Session {
-  id          String      @id @default(cuid())
+  id          String        @id @default(cuid())
   title       String
   description String?
   gameSystem  String
   maxPlayers  Int
   price       Float
-  duration    Int
+  duration    Int           // minutes
   status      SessionStatus @default(OPEN)
+  locationType LocationType @default(ONLINE)
   scheduledAt DateTime
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   
+  // Relations
   masterId    String?
   master      MasterProfile? @relation(fields: [masterId], references: [id])
   
   storeId     String?
   store       StoreProfile?  @relation(fields: [storeId], references: [id])
   
+  venueId     String?
+  venue       Venue?         @relation(fields: [venueId], references: [id])
+  
+  tableId     String?
+  table       Table?         @relation(fields: [tableId], references: [id])
+  
   bookings    Booking[]
   reviews     Review[]
+  chats       Chat[]
   
   @@map("sessions")
 }
@@ -83,6 +156,8 @@ model Session {
 model Booking {
   id        String        @id @default(cuid())
   status    BookingStatus @default(PENDING)
+  paymentId String?       // External payment ID (Asaas, etc.)
+  amount    Float?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   
@@ -92,25 +167,285 @@ model Booking {
   sessionId String
   session   Session @relation(fields: [sessionId], references: [id])
   
+  payments  Payment[]
+  
   @@unique([userId, sessionId])
   @@map("bookings")
 }
 
-model Review {
-  id        String   @id @default(cuid())
-  rating    Int
-  comment   String?
-  createdAt DateTime @default(now())
+// ===== PAYMENTS & SUBSCRIPTIONS =====
+
+model Payment {
+  id            String        @id @default(cuid())
+  amount        Float
+  currency      String        @default("BRL")
+  status        PaymentStatus @default(PENDING)
+  method        PaymentMethod
+  externalId    String?       // Asaas payment ID
+  description   String?
+  
+  bookingId     String?
+  booking       Booking?      @relation(fields: [bookingId], references: [id])
+  
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  @@map("payments")
+}
+
+model Subscription {
+  id        String             @id @default(cuid())
+  type      SubscriptionType
+  status    SubscriptionStatus @default(ACTIVE)
+  price     Float
+  currency  String             @default("BRL")
+  interval  String             @default("monthly") // monthly, yearly
   
   userId    String
-  user      User    @relation(fields: [userId], references: [id])
+  user      User               @relation(fields: [userId], references: [id])
+  
+  payments  Payment[]
+  
+  startsAt  DateTime
+  endsAt    DateTime?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  
+  @@map("subscriptions")
+}
+
+// ===== CHAT & NOTIFICATIONS =====
+
+model Chat {
+  id        String @id @default(cuid())
+  type      ChatType @default(SESSION)
+  name      String?
+  
+  sessionId String?
+  session   Session? @relation(fields: [sessionId], references: [id])
+  
+  messages  ChatMessage[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("chats")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  content   String
+  type      MessageType @default(TEXT)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@map("chat_messages")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  data      Json?            // Additional data
+  
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime         @default(now())
+  
+  @@map("notifications")
+}
+
+// ===== MARKETPLACE & ADVENTURES =====
+
+model Adventure {
+  id          String @id @default(cuid())
+  title       String
+  description String
+  gameSystem  String
+  price       Float
+  imageUrl    String?
+  fileUrl     String?
+  tags        String[]
+  rating      Float    @default(0)
+  downloads   Int      @default(0)
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  
+  purchases   Purchase[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("adventures")
+}
+
+model Purchase {
+  id          String @id @default(cuid())
+  amount      Float
+  
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  
+  adventureId String
+  adventure   Adventure @relation(fields: [adventureId], references: [id])
+  
+  createdAt   DateTime  @default(now())
+  
+  @@unique([userId, adventureId])
+  @@map("purchases")
+}
+
+// ===== FOOD SYSTEM =====
+
+model FoodMenu {
+  id        String @id @default(cuid())
+  name      String
+  isActive  Boolean @default(true)
+  
+  storeId   String
+  store     StoreProfile @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  items     FoodItem[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("food_menus")
+}
+
+model FoodItem {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  category    FoodCategory
+  imageUrl    String?
+  isAvailable Boolean @default(true)
+  
+  menuId      String
+  menu        FoodMenu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  
+  orderItems  FoodOrderItem[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("food_items")
+}
+
+model FoodOrder {
+  id        String          @id @default(cuid())
+  status    FoodOrderStatus @default(PENDING)
+  total     Float
+  notes     String?
+  
+  userId    String
+  user      User            @relation(fields: [userId], references: [id])
+  
+  items     FoodOrderItem[]
+  
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  
+  @@map("food_orders")
+}
+
+model FoodOrderItem {
+  id       String @id @default(cuid())
+  quantity Int
+  price    Float
+  
+  orderId  String
+  order    FoodOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  itemId   String
+  item     FoodItem  @relation(fields: [itemId], references: [id])
+  
+  @@map("food_order_items")
+}
+
+// ===== ACHIEVEMENTS & GAMIFICATION =====
+
+model Achievement {
+  id          String @id @default(cuid())
+  name        String
+  description String
+  icon        String?
+  points      Int    @default(0)
+  
+  users       UserAchievement[]
+  
+  createdAt   DateTime @default(now())
+  
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String @id @default(cuid())
+  
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  
+  unlockedAt    DateTime    @default(now())
+  
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+// ===== FINANCIAL LEDGER =====
+
+model LedgerEntry {
+  id          String      @id @default(cuid())
+  type        LedgerType
+  amount      Float
+  currency    String      @default("BRL")
+  description String
+  reference   String?     // External reference (payment ID, etc.)
+  
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime    @default(now())
+  
+  @@map("ledger_entries")
+}
+
+// ===== REVIEWS =====
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // 1-5 stars
+  comment   String?
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
   
   sessionId String
-  session   Session @relation(fields: [sessionId], references: [id])
+  session   Session  @relation(fields: [sessionId], references: [id])
+  
+  createdAt DateTime @default(now())
   
   @@unique([userId, sessionId])
   @@map("reviews")
 }
+
+// ===== ENUMS =====
 
 enum UserRole {
   PLAYER
@@ -126,9 +461,90 @@ enum SessionStatus {
   COMPLETED
 }
 
+enum LocationType {
+  ONLINE
+  VENUE
+}
+
 enum BookingStatus {
   PENDING
   CONFIRMED
   CANCELLED
   COMPLETED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+}
+
+enum SubscriptionType {
+  MASTER_BASIC
+  MASTER_PRO
+  STORE_BASIC
+  STORE_PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  SUSPENDED
+}
+
+enum ChatType {
+  SESSION
+  DIRECT
+  GROUP
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
+
+enum NotificationType {
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  SESSION_REMINDER
+  PAYMENT_RECEIVED
+  CHAT_MESSAGE
+  SYSTEM
+}
+
+enum FoodCategory {
+  APPETIZER
+  MAIN_COURSE
+  DESSERT
+  BEVERAGE
+  SNACK
+}
+
+enum FoodOrderStatus {
+  PENDING
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum LedgerType {
+  CREDIT
+  DEBIT
+  COMMISSION
+  REFUND
+  WITHDRAWAL
 }
