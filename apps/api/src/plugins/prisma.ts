@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin'
 import { FastifyInstance, FastifyPluginAsync } from 'fastify'
-import { prisma } from 'db'
+import { prisma } from '@socio-do-tabuleiro/database'
 
 declare module 'fastify' {
   interface FastifyInstance {

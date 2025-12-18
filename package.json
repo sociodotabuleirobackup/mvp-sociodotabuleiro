@@ -4,6 +4,7 @@
   "private": true,
   "description": "Marketplace para Mestres, Lojistas e Jogadores de RPG",
   "scripts": {
+    "dev": "concurrently \"pnpm dev:api\" \"pnpm dev:web\"",
     "dev:api": "pnpm --filter @socio-do-tabuleiro/api dev",
     "dev:web": "pnpm --filter @socio-do-tabuleiro/web dev",
     "dev:mobile": "pnpm --filter @socio-do-tabuleiro/mobile start",
@@ -18,10 +19,21 @@
     "db:migrate": "pnpm --filter @socio-do-tabuleiro/database db:migrate",
     "db:seed": "pnpm --filter @socio-do-tabuleiro/database db:seed",
     "db:studio": "pnpm --filter @socio-do-tabuleiro/database db:studio",
+    "db:reset": "pnpm --filter @socio-do-tabuleiro/database db:reset",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose build --no-cache",
+    "docker:logs": "docker compose logs -f",
+    "docker:logs:api": "docker compose logs -f api",
+    "docker:logs:web": "docker compose logs -f web",
+    "docker:ps": "docker compose ps",
+    "docker:restart": "docker compose restart",
+    "docker:clean": "docker compose down -v --rmi local",
     "clean": "pnpm --recursive exec rm -rf dist node_modules/.cache"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
+    "concurrently": "^8.2.2",
     "typescript": "^5.3.3"
   }
 }
