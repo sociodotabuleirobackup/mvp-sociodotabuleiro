@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { updateUserSchema, createMasterProfileSchema, createStoreProfileSchema } from 'shared'
+import { updateUserSchema, createMasterProfileSchema } from '@socio-do-tabuleiro/shared'
 
 export async function userRoutes(app: FastifyInstance) {
   // GET /api/users/me - Perfil do usuário autenticado
@@ -7,24 +7,20 @@ export async function userRoutes(app: FastifyInstance) {
     preHandler: [app.authenticate]
   }, async (request, reply) => {
     try {
-      const user = await app.prisma.user.findUnique({
-        where: { id: request.user.id },
-        include: {
-          masterProfile: true,
-          storeProfile: true
-        }
+      const profile = await app.prisma.profile.findUnique({
+        where: { id: request.user.id }
       })
 
-      if (!user) {
+      if (!profile) {
         return reply.status(404).send({
           success: false,
           error: 'User not found'
         })
       }
 
-      return { success: true, data: user }
+      return { success: true, data: profile }
     } catch (error) {
-      app.log.error('Failed to fetch user:', error)
+      app.log.error({ error }, 'Failed to fetch user')
       return reply.status(500).send({
         success: false,
         error: 'Internal server error'
@@ -39,26 +35,22 @@ export async function userRoutes(app: FastifyInstance) {
     try {
       const data = updateUserSchema.parse(request.body)
       
-      const user = await app.prisma.user.update({
+      const profile = await app.prisma.profile.update({
         where: { id: request.user.id },
-        data,
-        include: {
-          masterProfile: true,
-          storeProfile: true
-        }
+        data
       })
 
-      return { success: true, data: user }
+      return { success: true, data: profile }
     } catch (error) {
-      if (error.name === 'ZodError') {
+      if (error instanceof Error && error.name === 'ZodError') {
         return reply.status(400).send({
           success: false,
           error: 'Validation failed',
-          details: error.issues
+          details: (error as any).issues
         })
       }
       
-      app.log.error('Failed to update user:', error)
+      app.log.error({ error }, 'Failed to update user')
       return reply.status(500).send({
         success: false,
         error: 'Internal server error'
@@ -73,30 +65,23 @@ export async function userRoutes(app: FastifyInstance) {
     try {
       const data = createMasterProfileSchema.parse(request.body)
       
-      const profile = await app.prisma.masterProfile.create({
-        data: {
-          ...data,
-          userId: request.user.id
-        }
-      })
-
-      // Atualizar role do usuário
-      await app.prisma.user.update({
+      // Atualizar role do usuário para MASTER
+      const profile = await app.prisma.profile.update({
         where: { id: request.user.id },
         data: { role: 'MASTER' }
       })
 
       return reply.status(201).send({ success: true, data: profile })
     } catch (error) {
-      if (error.name === 'ZodError') {
+      if (error instanceof Error && error.name === 'ZodError') {
         return reply.status(400).send({
           success: false,
           error: 'Validation failed',
-          details: error.issues
+          details: (error as any).issues
         })
       }
       
-      app.log.error('Failed to create master profile:', error)
+      app.log.error({ error }, 'Failed to create master profile')
       return reply.status(500).send({
         success: false,
         error: 'Internal server error'
