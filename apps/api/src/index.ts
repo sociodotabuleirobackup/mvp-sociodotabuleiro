@@ -6,6 +6,7 @@ import { authPlugin } from './plugins/auth'
 import { healthRoutes } from './routes/health'
 import { sessionRoutes } from './routes/sessions'
 import { userRoutes } from './routes/users'
+import { bookingRoutes } from './routes/bookings'
 
 const server = Fastify({
   logger: {

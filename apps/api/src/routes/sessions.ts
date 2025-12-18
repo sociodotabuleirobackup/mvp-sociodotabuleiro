@@ -1,152 +1,39 @@
 import { FastifyInstance } from 'fastify'
-import { z } from 'zod'
-
-// Schema de validação para criar sessão
-const createSessionSchema = z.object({
-  title: z.string().min(3).max(200),
-  description: z.string().max(2000).optional(),
-  gameSystem: z.string().min(2).max(100),
-  maxPlayers: z.number().min(1).max(20),
-  price: z.number().min(0),
-  duration: z.number().min(30).max(720), // 30min to 12h
-  scheduledAt: z.string().datetime(),
-  storeId: z.string().optional(),
-})
+import { SessionRepository } from '../repositories/session.repository'
+import { UserRepository } from '../repositories/user.repository'
+import { SessionService } from '../services/session.service'
+import { UserService } from '../services/user.service'
+import { createSessionSchema, updateSessionSchema, sessionFiltersSchema } from '../schemas/session.schemas'
+import { requireMaster, requireAnyRole } from '../middleware/auth.middleware'
 
 export async function sessionRoutes(app: FastifyInstance) {
-  // GET /api/sessions - Listar sessões públicas
+  const sessionRepository = new SessionRepository(app.prisma)
+  const userRepository = new UserRepository(app.prisma)
+  const userService = new UserService(userRepository)
+  const sessionService = new SessionService(sessionRepository, userService)
+
+  // GET /api/sessions - List sessions with filters
   app.get('/sessions', async (request, reply) => {
     try {
-      const sessions = await app.prisma.session.findMany({
-        where: { status: 'OPEN' },
-        include: {
-          master: {
-            include: {
-              user: {
-                select: { name: true, avatar: true }
-              }
-            }
-          },
-          store: true,
-          _count: { select: { bookings: true } }
-        },
-        orderBy: { scheduledAt: 'asc' }
-      })
-
-      return { success: true, data: sessions }
-    } catch (error) {
-      app.log.error({ error }, 'Failed to fetch sessions')
-      return reply.status(500).send({ 
-        success: false, 
-        error: 'Internal server error' 
-      })
-    }
-  })
-
-  // GET /api/sessions/:id - Detalhes de uma sessão
-  app.get('/sessions/:id', async (request, reply) => {
-    try {
-      const { id } = request.params as { id: string }
+      const filters = sessionFiltersSchema.parse(request.query)
       
-      const session = await app.prisma.session.findUnique({
-        where: { id },
-        include: {
-          master: {
-            include: {
-              user: {
-                select: { name: true, avatar: true }
-              }
-            }
-          },
-          store: true,
-          bookings: {
-            include: {
-              user: {
-                select: { id: true, name: true, avatar: true }
-              }
-            }
-          },
-          reviews: {
-            include: {
-              user: {
-                select: { name: true, avatar: true }
-              }
-            }
-          }
-        }
-      })
-
-      if (!session) {
-        return reply.status(404).send({
-          success: false,
-          error: 'Session not found'
-        })
-      }
-
-      return { success: true, data: session }
-    } catch (error) {
-      app.log.error({ error }, 'Failed to fetch session')
-      return reply.status(500).send({ 
-        success: false, 
-        error: 'Internal server error' 
-      })
-    }
-  })
-
-  // POST /api/sessions - Criar sessão (autenticado)
-  app.post('/sessions', {
-    preHandler: [app.authenticate]
-  }, async (request, reply) => {
-    try {
-      const data = createSessionSchema.parse(request.body)
+      const sessions = await sessionService.getSessions(filters)
       
-      // Verificar se usuário tem perfil de MASTER
-      const masterProfile = await app.prisma.masterProfile.findUnique({
-        where: { userId: request.user.id }
-      })
-
-      if (!masterProfile) {
-        return reply.status(403).send({
-          success: false,
-          error: 'Only masters can create sessions'
-        })
+      return {
+        success: true,
+        data: sessions,
+        count: sessions.length
       }
-
-      const session = await app.prisma.session.create({
-        data: {
-          title: data.title,
-          description: data.description,
-          gameSystem: data.gameSystem,
-          maxPlayers: data.maxPlayers,
-          price: data.price,
-          duration: data.duration,
-          scheduledAt: new Date(data.scheduledAt),
-          masterId: masterProfile.id,
-          storeId: data.storeId,
-        },
-        include: {
-          master: {
-            include: {
-              user: {
-                select: { name: true, avatar: true }
-              }
-            }
-          }
-        }
-      })
-
-      app.log.info({ sessionId: session.id }, 'Session created')
-      return reply.status(201).send({ success: true, data: session })
     } catch (error) {
-      if (error instanceof z.ZodError) {
+      if (error instanceof Error && error.name === 'ZodError') {
         return reply.status(400).send({
           success: false,
-          error: 'Validation failed',
-          details: error.issues
+          error: 'Invalid filters',
+          details: (error as any).issues
         })
       }
       
-      app.log.error({ error }, 'Failed to create session')
+      app.log.error({ error }, 'Failed to fetch sessions')
       return reply.status(500).send({
         success: false,
         error: 'Internal server error'
@@ -154,46 +41,196 @@ export async function sessionRoutes(app: FastifyInstance) {
     }
   })
 
-  // DELETE /api/sessions/:id - Cancelar sessão
+  // GET /api/sessions/:id - Get session details
+  app.get('/sessions/:id', async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string }
+      
+      const session = await sessionService.getSessionById(id)
+      
+      return {
+        success: true,
+        data: session
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Session not found') {
+        return reply.status(404).send({
+          success: false,
+          error: error.message
+        })
+      }
+      
+      app.log.error({ error, sessionId: (request.params as any).id }, 'Failed to fetch session')
+      return reply.status(500).send({
+        success: false,
+        error: 'Internal server error'
+      })
+    }
+  })
+
+  // POST /api/sessions - Create session (masters only)
+  app.post('/sessions', {
+    preHandler: [requireMaster]
+  }, async (request, reply) => {
+    try {
+      const data = createSessionSchema.parse(request.body)
+      
+      const session = await sessionService.createSession(request.user.id, data)
+      
+      app.log.info({ 
+        sessionId: session.id, 
+        masterId: request.user.id 
+      }, 'Session created')
+      
+      return reply.status(201).send({
+        success: true,
+        data: session
+      })
+    } catch (error) {
+      if (error instanceof Error && error.name === 'ZodError') {
+        return reply.status(400).send({
+          success: false,
+          error: 'Validation failed',
+          details: (error as any).issues
+        })
+      }
+
+      if (error instanceof Error) {
+        const businessErrors = [
+          'User is not authorized to create sessions',
+          'Master profile not found',
+          'Session must be scheduled in the future',
+          'Session duration must be between 30 minutes and 12 hours',
+          'Max players must be between 1 and 20',
+          'Price cannot be negative'
+        ]
+        
+        if (businessErrors.includes(error.message)) {
+          return reply.status(400).send({
+            success: false,
+            error: error.message
+          })
+        }
+      }
+      
+      app.log.error({ error, masterId: request.user.id }, 'Failed to create session')
+      return reply.status(500).send({
+        success: false,
+        error: 'Internal server error'
+      })
+    }
+  })
+
+  // PUT /api/sessions/:id - Update session (master only)
+  app.put('/sessions/:id', {
+    preHandler: [requireMaster]
+  }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string }
+      const data = updateSessionSchema.parse(request.body)
+      
+      const session = await sessionService.updateSession(id, request.user.id, data)
+      
+      app.log.info({ 
+        sessionId: id, 
+        masterId: request.user.id 
+      }, 'Session updated')
+      
+      return {
+        success: true,
+        data: session
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === 'ZodError') {
+        return reply.status(400).send({
+          success: false,
+          error: 'Validation failed',
+          details: (error as any).issues
+        })
+      }
+
+      if (error instanceof Error) {
+        if (error.message === 'Session not found') {
+          return reply.status(404).send({
+            success: false,
+            error: error.message
+          })
+        }
+        
+        const businessErrors = [
+          'Not authorized to update this session',
+          'Cannot update a session that is not open',
+          'Session must be scheduled in the future'
+        ]
+        
+        if (businessErrors.includes(error.message)) {
+          return reply.status(400).send({
+            success: false,
+            error: error.message
+          })
+        }
+      }
+      
+      app.log.error({ 
+        error, 
+        sessionId: (request.params as any).id, 
+        masterId: request.user.id 
+      }, 'Failed to update session')
+      
+      return reply.status(500).send({
+        success: false,
+        error: 'Internal server error'
+      })
+    }
+  })
+
+  // DELETE /api/sessions/:id - Cancel session (master only)
   app.delete('/sessions/:id', {
-    preHandler: [app.authenticate]
+    preHandler: [requireMaster]
   }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string }
       
-      const session = await app.prisma.session.findUnique({
-        where: { id },
-        include: { master: true }
-      })
-
-      if (!session) {
-        return reply.status(404).send({
-          success: false,
-          error: 'Session not found'
-        })
+      await sessionService.cancelSession(id, request.user.id)
+      
+      app.log.info({ 
+        sessionId: id, 
+        masterId: request.user.id 
+      }, 'Session cancelled')
+      
+      return {
+        success: true,
+        message: 'Session cancelled successfully'
       }
-
-      // Verificar se o usuário é o dono da sessão
-      const masterProfile = await app.prisma.masterProfile.findUnique({
-        where: { userId: request.user.id }
-      })
-
-      if (session.masterId !== masterProfile?.id) {
-        return reply.status(403).send({
-          success: false,
-          error: 'Not authorized to delete this session'
-        })
-      }
-
-      await app.prisma.session.update({
-        where: { id },
-        data: { status: 'CANCELLED' }
-      })
-
-      app.log.info({ sessionId: id }, 'Session cancelled')
-      return { success: true, message: 'Session cancelled' }
     } catch (error) {
-      app.log.error({ error }, 'Failed to cancel session')
+      if (error instanceof Error) {
+        if (error.message === 'Session not found') {
+          return reply.status(404).send({
+            success: false,
+            error: error.message
+          })
+        }
+        
+        const businessErrors = [
+          'Not authorized to cancel this session',
+          'Session is already cancelled',
+          'Cannot cancel a completed session'
+        ]
+        
+        if (businessErrors.includes(error.message)) {
+          return reply.status(400).send({
+            success: false,
+            error: error.message
+          })
+        }
+      }
+      
+      app.log.error({ 
+        error, 
+        sessionId: (request.params as any).id, 
+        masterId: request.user.id 
+      }, 'Failed to cancel session')
+      
       return reply.status(500).send({
         success: false,
         error: 'Internal server error'
