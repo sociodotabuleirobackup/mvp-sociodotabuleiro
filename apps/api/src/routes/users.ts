@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { updateUserSchema, createMasterProfileSchema } from 'shared'
+import { updateUserSchema, createMasterProfileSchema } from '@socio-do-tabuleiro/shared'
 
 export async function userRoutes(app: FastifyInstance) {
   // GET /api/users/me - Perfil do usuário autenticado

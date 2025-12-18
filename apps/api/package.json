@@ -1,19 +1,19 @@
 {
-  "name": "api",
-  "version": "0.1.0",
+  "name": "@socio-do-tabuleiro/api",
+  "version": "1.0.0",
   "private": true,
   "main": "src/index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "type-check": "tsc --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
     "@fastify/rate-limit": "^9.1.0",
-    "db": "workspace:*",
-    "shared": "workspace:*",
+    "@socio-do-tabuleiro/database": "workspace:*",
+    "@socio-do-tabuleiro/shared": "workspace:*",
     "fastify": "^4.26.2",
     "fastify-plugin": "^4.5.1",
     "jose": "^5.2.3",

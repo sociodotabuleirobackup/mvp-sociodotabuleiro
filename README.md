@@ -1,20 +1,167 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Sócio do Tabuleiro
 
-# Run and deploy your AI Studio app
+Marketplace para Mestres, Lojistas e Jogadores de RPG.
 
-This contains everything you need to run your app locally.
+## 📁 Estrutura do Projeto
 
-View your app in AI Studio: https://ai.studio/apps/drive/1kjUiIve1YnQr6_rHRUQdJdkRDPvEVNIJ
+```
+├── apps/
+│   ├── api/                    # Backend API (Fastify + TypeScript)
+│   ├── web/                    # Frontend Web (React + Vite)
+│   └── mobile/                 # Mobile App (React Native + Expo)
+├── packages/
+│   ├── shared/                 # Código compartilhado (tipos, utils, constantes)
+│   └── database/               # Schema e migrations (Prisma)
+├── tools/
+│   ├── scripts/                # Scripts de automação
+│   ├── supabase/              # Configurações Supabase
+│   └── public/                # Assets públicos
+└── docs/                      # Documentação
+```
 
-## Run Locally
+## 🚀 Como Rodar
 
-**Prerequisites:**  Node.js
+### Pré-requisitos
+- Node.js 18+
+- pnpm
+- PostgreSQL
 
+### Instalação
+```bash
+# Instalar dependências
+pnpm install
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+# Configurar banco de dados
+pnpm db:migrate
+pnpm db:seed
+```
+
+### Desenvolvimento
+```bash
+# Backend API
+pnpm dev:api
+
+# Frontend Web
+pnpm dev:web
+
+# Mobile App
+pnpm dev:mobile
+
+# Database Studio
+pnpm db:studio
+```
+
+### Build & Deploy
+```bash
+# Build todos os projetos
+pnpm build
+
+# Build específico
+pnpm build:api
+pnpm build:web
+
+# TypeCheck
+pnpm typecheck
+```
+
+## 🎯 Funcionalidades
+
+### 🎲 Para Mestres
+- Criar e gerenciar sessões de RPG
+- Definir preços e horários
+- Gerenciar reservas de jogadores
+- Receber pagamentos via Asaas
+- Contratos digitais via ZapSign
+
+### 🎮 Para Jogadores
+- Buscar e reservar sessões
+- Fazer pagamentos seguros
+- Chat com mestres e outros jogadores
+- Sistema de avaliações
+- Histórico de sessões
+
+### 🏪 Para Lojistas
+- Cadastrar espaços para sessões
+- Gerenciar cardápio de comidas/bebidas
+- Receber pedidos durante as sessões
+- Dashboard de vendas e analytics
+
+### 🛒 Marketplace
+- Compra e venda de assets (mapas, tokens, módulos)
+- Sistema de avaliações
+- Downloads seguros
+- Comissões automáticas
+
+## 🛠 Stack Tecnológica
+
+### Frontend Web
+- **React 18** + TypeScript
+- **Vite** para build
+- **Tailwind CSS** para styling
+- **React Router** para navegação
+
+### Mobile
+- **React Native** + Expo
+- **TypeScript**
+- **React Navigation**
+
+### Backend
+- **Fastify** + TypeScript
+- **Prisma** ORM
+- **PostgreSQL**
+- **JWT** para autenticação
+
+### Integrações
+- **Asaas API** - Pagamentos
+- **ZapSign API** - Contratos digitais
+- **Google Maps API** - Localização
+- **Google Calendar API** - Agendamento
+- **Firebase** - Notificações push
+
+## 📱 Apps
+
+### Web App
+- Interface responsiva para desktop e mobile
+- PWA com suporte offline
+- Notificações em tempo real
+
+### Mobile App
+- App nativo iOS/Android
+- Push notifications
+- Geolocalização
+- Camera para upload de assets
+
+## 🔧 Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+pnpm dev:api          # Rodar API em modo dev
+pnpm dev:web          # Rodar web app em modo dev
+pnpm dev:mobile       # Rodar mobile app
+
+# Build
+pnpm build            # Build todos os projetos
+pnpm build:api        # Build apenas API
+pnpm build:web        # Build apenas web
+
+# Database
+pnpm db:generate      # Gerar Prisma client
+pnpm db:migrate       # Rodar migrations
+pnpm db:seed          # Popular banco com dados
+pnpm db:studio        # Abrir Prisma Studio
+
+# Qualidade
+pnpm typecheck        # TypeScript check em todos
+pnpm typecheck:api    # TypeScript check na API
+pnpm typecheck:web    # TypeScript check no web
+pnpm clean            # Limpar caches e builds
+```
+
+## 🌟 Próximos Passos
+
+- [ ] Implementar autenticação completa
+- [ ] Integrar APIs de pagamento
+- [ ] Sistema de notificações
+- [ ] Testes automatizados
+- [ ] CI/CD pipeline
+- [ ] Documentação da API

@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { createSessionSchema } from 'shared'
+import { createSessionSchema } from '@socio-do-tabuleiro/shared'
 
 export async function sessionRoutes(app: FastifyInstance) {
   // GET /api/sessions - Listar sessões públicas
