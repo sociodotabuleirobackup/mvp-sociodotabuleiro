@@ -1,5 +1,5 @@
-import { z } from 'zod'
-import { LocationType, SessionStatus } from '@socio-do-tabuleiro/database'
+import { z } from 'zod';
+import { LocationType, SessionStatus } from '@socio-do-tabuleiro/database';
 
 export const createSessionSchema = z.object({
   title: z.string().min(3).max(200),
@@ -8,19 +8,22 @@ export const createSessionSchema = z.object({
   maxPlayers: z.number().int().min(1).max(20),
   price: z.number().min(0),
   duration: z.number().int().min(30).max(720), // 30 minutes to 12 hours
-  scheduledAt: z.string().datetime().transform(str => new Date(str)),
+  scheduledAt: z
+    .string()
+    .datetime()
+    .transform(str => new Date(str)),
   locationType: z.nativeEnum(LocationType),
   storeId: z.string().optional(),
   venueId: z.string().optional(),
   tableId: z.string().optional(),
-})
+});
 
 export const updateSessionSchema = createSessionSchema.partial().omit({
   locationType: true,
   storeId: true,
   venueId: true,
   tableId: true,
-})
+});
 
 export const sessionFiltersSchema = z.object({
   status: z.nativeEnum(SessionStatus).optional(),
@@ -30,10 +33,18 @@ export const sessionFiltersSchema = z.object({
   storeId: z.string().optional(),
   minPrice: z.number().min(0).optional(),
   maxPrice: z.number().min(0).optional(),
-  scheduledAfter: z.string().datetime().transform(str => new Date(str)).optional(),
-  scheduledBefore: z.string().datetime().transform(str => new Date(str)).optional(),
-})
+  scheduledAfter: z
+    .string()
+    .datetime()
+    .transform(str => new Date(str))
+    .optional(),
+  scheduledBefore: z
+    .string()
+    .datetime()
+    .transform(str => new Date(str))
+    .optional(),
+});
 
-export type CreateSessionInput = z.infer<typeof createSessionSchema>
-export type UpdateSessionInput = z.infer<typeof updateSessionSchema>
-export type SessionFiltersInput = z.infer<typeof sessionFiltersSchema>
+export type CreateSessionInput = z.infer<typeof createSessionSchema>;
+export type UpdateSessionInput = z.infer<typeof updateSessionSchema>;
+export type SessionFiltersInput = z.infer<typeof sessionFiltersSchema>;

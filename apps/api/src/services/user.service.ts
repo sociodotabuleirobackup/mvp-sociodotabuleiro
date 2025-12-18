@@ -1,57 +1,60 @@
-import { UserRepository } from '../repositories/user.repository'
-import { UserRole } from '@socio-do-tabuleiro/database'
+import { UserRepository } from '../repositories/user.repository';
+import { UserRole } from '@socio-do-tabuleiro/database';
 
 export class UserService {
   constructor(private userRepository: UserRepository) {}
 
   async getOrCreateUser(authUser: { id: string; email: string }) {
-    let user = await this.userRepository.findById(authUser.id)
-    
+    let user = await this.userRepository.findById(authUser.id);
+
     if (!user) {
       // Create user if doesn't exist (first login)
       user = await this.userRepository.create({
         id: authUser.id,
         email: authUser.email,
-        role: UserRole.PLAYER // Default role
-      })
+        role: UserRole.PLAYER, // Default role
+      });
     }
 
-    return user
+    return user;
   }
 
-  async updateProfile(userId: string, data: {
-    name?: string
-    avatar?: string
-    phone?: string
-  }) {
-    const user = await this.userRepository.findById(userId)
+  async updateProfile(
+    userId: string,
+    data: {
+      name?: string;
+      avatar?: string;
+      phone?: string;
+    }
+  ) {
+    const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new Error('User not found')
+      throw new Error('User not found');
     }
 
-    return this.userRepository.update(userId, data)
+    return this.userRepository.update(userId, data);
   }
 
   async becomeMaster(userId: string, data: { bio?: string }) {
-    const user = await this.userRepository.findById(userId)
+    const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new Error('User not found')
+      throw new Error('User not found');
     }
 
     if (user.masterProfile) {
-      throw new Error('User is already a master')
+      throw new Error('User is already a master');
     }
 
-    return this.userRepository.createMasterProfile(userId, data)
+    return this.userRepository.createMasterProfile(userId, data);
   }
 
   async canCreateSession(userId: string): Promise<boolean> {
-    const user = await this.userRepository.findById(userId)
-    return user?.role === UserRole.MASTER && !!user.masterProfile
+    const user = await this.userRepository.findById(userId);
+    return user?.role === UserRole.MASTER && !!user.masterProfile;
   }
 
   async canManageVenue(userId: string): Promise<boolean> {
-    const user = await this.userRepository.findById(userId)
-    return user?.role === UserRole.STORE && !!user.storeProfile
+    const user = await this.userRepository.findById(userId);
+    return user?.role === UserRole.STORE && !!user.storeProfile;
   }
 }

@@ -1,4 +1,4 @@
-import { PrismaClient, User, UserRole } from '@socio-do-tabuleiro/database'
+import { PrismaClient, User, UserRole } from '@socio-do-tabuleiro/database';
 
 export class UserRepository {
   constructor(private prisma: PrismaClient) {}
@@ -9,8 +9,8 @@ export class UserRepository {
       include: {
         masterProfile: true,
         storeProfile: true,
-      }
-    })
+      },
+    });
   }
 
   async findByEmail(email: string) {
@@ -19,34 +19,37 @@ export class UserRepository {
       include: {
         masterProfile: true,
         storeProfile: true,
-      }
-    })
+      },
+    });
   }
 
   async create(data: {
-    id: string
-    email: string
-    name?: string
-    role?: UserRole
+    id: string;
+    email: string;
+    name?: string;
+    role?: UserRole;
   }) {
     return this.prisma.user.create({
       data,
       include: {
         masterProfile: true,
         storeProfile: true,
-      }
-    })
+      },
+    });
   }
 
-  async update(id: string, data: Partial<Pick<User, 'name' | 'avatar' | 'phone'>>) {
+  async update(
+    id: string,
+    data: Partial<Pick<User, 'name' | 'avatar' | 'phone'>>
+  ) {
     return this.prisma.user.update({
       where: { id },
       data,
       include: {
         masterProfile: true,
         storeProfile: true,
-      }
-    })
+      },
+    });
   }
 
   async createMasterProfile(userId: string, data: { bio?: string }) {
@@ -56,16 +59,16 @@ export class UserRepository {
         data: {
           userId,
           bio: data.bio,
-        }
-      })
+        },
+      });
 
       // Update user role
       await tx.user.update({
         where: { id: userId },
-        data: { role: UserRole.MASTER }
-      })
+        data: { role: UserRole.MASTER },
+      });
 
-      return masterProfile
-    })
+      return masterProfile;
+    });
   }
 }

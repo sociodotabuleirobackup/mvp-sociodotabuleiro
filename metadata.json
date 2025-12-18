@@ -1,7 +1,5 @@
 {
   "name": "Sócio do Tabuleiro",
   "description": "O marketplace definitivo para Mestres, Lojistas e Jogadores de RPG e Board Games. Encontre mesas, gerencie sessões e viva aventuras épicas.",
-  "requestFramePermissions": [
-    "geolocation"
-  ]
+  "requestFramePermissions": ["geolocation"]
 }

@@ -56,7 +56,9 @@ export const createAssetSchema = z.object({
 });
 
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
-export type CreateMasterProfileInput = z.infer<typeof createMasterProfileSchema>;
+export type CreateMasterProfileInput = z.infer<
+  typeof createMasterProfileSchema
+>;
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;
 export type UpdateSessionInput = z.infer<typeof updateSessionSchema>;
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;

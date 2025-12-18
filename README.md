@@ -22,11 +22,13 @@ Marketplace para Mestres, Lojistas e Jogadores de RPG.
 ## 🚀 Como Rodar
 
 ### Pré-requisitos
+
 - Node.js 18+
 - pnpm
 - PostgreSQL
 
 ### Instalação
+
 ```bash
 # Instalar dependências
 pnpm install
@@ -37,6 +39,7 @@ pnpm db:seed
 ```
 
 ### Desenvolvimento
+
 ```bash
 # Backend API
 pnpm dev:api
@@ -52,6 +55,7 @@ pnpm db:studio
 ```
 
 ### Build & Deploy
+
 ```bash
 # Build todos os projetos
 pnpm build
@@ -67,6 +71,7 @@ pnpm typecheck
 ## 🎯 Funcionalidades
 
 ### 🎲 Para Mestres
+
 - Criar e gerenciar sessões de RPG
 - Definir preços e horários
 - Gerenciar reservas de jogadores
@@ -74,6 +79,7 @@ pnpm typecheck
 - Contratos digitais via ZapSign
 
 ### 🎮 Para Jogadores
+
 - Buscar e reservar sessões
 - Fazer pagamentos seguros
 - Chat com mestres e outros jogadores
@@ -81,12 +87,14 @@ pnpm typecheck
 - Histórico de sessões
 
 ### 🏪 Para Lojistas
+
 - Cadastrar espaços para sessões
 - Gerenciar cardápio de comidas/bebidas
 - Receber pedidos durante as sessões
 - Dashboard de vendas e analytics
 
 ### 🛒 Marketplace
+
 - Compra e venda de assets (mapas, tokens, módulos)
 - Sistema de avaliações
 - Downloads seguros
@@ -95,23 +103,27 @@ pnpm typecheck
 ## 🛠 Stack Tecnológica
 
 ### Frontend Web
+
 - **React 18** + TypeScript
 - **Vite** para build
 - **Tailwind CSS** para styling
 - **React Router** para navegação
 
 ### Mobile
+
 - **React Native** + Expo
 - **TypeScript**
 - **React Navigation**
 
 ### Backend
+
 - **Fastify** + TypeScript
 - **Prisma** ORM
 - **PostgreSQL**
 - **JWT** para autenticação
 
 ### Integrações
+
 - **Asaas API** - Pagamentos
 - **ZapSign API** - Contratos digitais
 - **Google Maps API** - Localização
@@ -121,11 +133,13 @@ pnpm typecheck
 ## 📱 Apps
 
 ### Web App
+
 - Interface responsiva para desktop e mobile
 - PWA com suporte offline
 - Notificações em tempo real
 
 ### Mobile App
+
 - App nativo iOS/Android
 - Push notifications
 - Geolocalização

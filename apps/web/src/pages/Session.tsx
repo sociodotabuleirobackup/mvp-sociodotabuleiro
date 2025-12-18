@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 // Changed react-router-dom to react-router to fix missing export errors
 import { useNavigate } from 'react-router';
@@ -13,7 +12,7 @@ export const CreateSession: React.FC = () => {
     system: 'D&D 5e',
     price: 0,
     isOnline: false,
-    date: ''
+    date: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -23,7 +22,9 @@ export const CreateSession: React.FC = () => {
     // Business Rule: Contract Check for Publishing
     if (status === SessionStatus.PUBLISHED) {
       if (user?.founderPactStatus !== ContractStatus.SIGNED) {
-        alert("Para publicar sessões cobradas, você precisa assinar o Pacto de Fundador.");
+        alert(
+          'Para publicar sessões cobradas, você precisa assinar o Pacto de Fundador.'
+        );
         // In real app, redirect to legal/contract page
         setSubmitting(false);
         return;
@@ -32,37 +33,47 @@ export const CreateSession: React.FC = () => {
 
     // Mock API Call
     await new Promise(r => setTimeout(r, 1000));
-    
+
     console.log(`Session saved as ${status}`, formData);
     navigate('/dashboard');
   };
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
-      <button onClick={() => navigate(-1)} className="flex items-center text-gray-400 mb-6 hover:text-white">
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center text-gray-400 mb-6 hover:text-white"
+      >
         <span className="material-symbols-outlined">arrow_back</span> Voltar
       </button>
 
-      <h1 className="text-3xl font-display font-bold mb-6">Criar Nova Sessão</h1>
+      <h1 className="text-3xl font-display font-bold mb-6">
+        Criar Nova Sessão
+      </h1>
 
       <div className="glass-panel p-6 rounded-2xl space-y-6">
-        
         {/* Basic Info */}
         <div className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Título da Aventura</label>
-            <input 
-              type="text" 
+            <label className="block text-sm text-gray-400 mb-1">
+              Título da Aventura
+            </label>
+            <input
+              type="text"
               className="w-full bg-surface border border-border rounded-lg p-3 text-white focus:border-primary outline-none transition-colors"
               placeholder="Ex: A Tumba dos Horrores"
               value={formData.title}
-              onChange={e => setFormData({...formData, title: e.target.value})}
+              onChange={e =>
+                setFormData({ ...formData, title: e.target.value })
+              }
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Sistema</label>
+              <label className="block text-sm text-gray-400 mb-1">
+                Sistema
+              </label>
               <select className="w-full bg-surface border border-border rounded-lg p-3 text-white outline-none">
                 <option>D&D 5e</option>
                 <option>Pathfinder 2e</option>
@@ -72,7 +83,10 @@ export const CreateSession: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm text-gray-400 mb-1">Data</label>
-              <input type="datetime-local" className="w-full bg-surface border border-border rounded-lg p-3 text-white outline-none scheme-dark" />
+              <input
+                type="datetime-local"
+                className="w-full bg-surface border border-border rounded-lg p-3 text-white outline-none scheme-dark"
+              />
             </div>
           </div>
         </div>
@@ -81,12 +95,14 @@ export const CreateSession: React.FC = () => {
         <div className="bg-surface/50 p-4 rounded-xl border border-primary/20">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-accent">calculate</span>
+              <span className="material-symbols-outlined text-accent">
+                calculate
+              </span>
               Calculadora de Preço
             </h3>
             <span className="text-xs text-gray-400">Sugestão Automática</span>
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-400">Sua Hora/Aula</span>
@@ -110,20 +126,24 @@ export const CreateSession: React.FC = () => {
 
         {/* Location Selection */}
         <div>
-          <label className="block text-sm text-gray-400 mb-2">Local da Sessão</label>
+          <label className="block text-sm text-gray-400 mb-2">
+            Local da Sessão
+          </label>
           <div className="grid grid-cols-2 gap-4">
-            <button 
+            <button
               className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${formData.isOnline ? 'border-primary bg-primary/10 text-white' : 'border-border bg-surface text-gray-400'}`}
-              onClick={() => setFormData({...formData, isOnline: true})}
+              onClick={() => setFormData({ ...formData, isOnline: true })}
             >
               <span className="material-symbols-outlined text-3xl">wifi</span>
               <span className="font-bold">Online</span>
             </button>
-            <button 
+            <button
               className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${!formData.isOnline ? 'border-primary bg-primary/10 text-white' : 'border-border bg-surface text-gray-400'}`}
-              onClick={() => setFormData({...formData, isOnline: false})}
+              onClick={() => setFormData({ ...formData, isOnline: false })}
             >
-              <span className="material-symbols-outlined text-3xl">storefront</span>
+              <span className="material-symbols-outlined text-3xl">
+                storefront
+              </span>
               <span className="font-bold">Presencial (Loja)</span>
             </button>
           </div>
@@ -131,30 +151,34 @@ export const CreateSession: React.FC = () => {
 
         {/* Contract Warning */}
         {user?.founderPactStatus !== ContractStatus.SIGNED && (
-           <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex gap-3 text-sm text-red-200">
-              <span className="material-symbols-outlined shrink-0">gavel</span>
-              <p>Assinatura pendente do Pacto de Fundador. Você só poderá salvar como rascunho.</p>
-           </div>
+          <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex gap-3 text-sm text-red-200">
+            <span className="material-symbols-outlined shrink-0">gavel</span>
+            <p>
+              Assinatura pendente do Pacto de Fundador. Você só poderá salvar
+              como rascunho.
+            </p>
+          </div>
         )}
 
         <div className="flex gap-4">
-          <button 
+          <button
             onClick={() => handleSave(SessionStatus.DRAFT)}
             disabled={submitting}
             className="flex-1 py-4 bg-transparent border border-white/20 hover:bg-white/5 text-white rounded-xl font-bold transition-colors"
           >
             Salvar Rascunho
           </button>
-          
-          <button 
+
+          <button
             onClick={() => handleSave(SessionStatus.PUBLISHED)}
-            disabled={submitting || user?.founderPactStatus !== ContractStatus.SIGNED}
+            disabled={
+              submitting || user?.founderPactStatus !== ContractStatus.SIGNED
+            }
             className="flex-1 py-4 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold text-lg shadow-[0_0_15px_rgba(107,38,217,0.4)] transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? 'Processando...' : 'Publicar'}
           </button>
         </div>
-
       </div>
     </div>
   );

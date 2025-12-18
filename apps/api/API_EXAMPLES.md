@@ -33,6 +33,7 @@ http GET http://localhost:3001/healthz
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -61,6 +62,7 @@ http GET http://localhost:3001/api/me \
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -149,6 +151,7 @@ http GET http://localhost:3001/api/sessions \
 ```
 
 **Query Parameters:**
+
 - `status`: OPEN | FULL | CANCELLED | COMPLETED
 - `locationType`: ONLINE | VENUE
 - `gameSystem`: string (partial match)
@@ -160,6 +163,7 @@ http GET http://localhost:3001/api/sessions \
 - `scheduledBefore`: ISO datetime
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -170,7 +174,7 @@ http GET http://localhost:3001/api/sessions \
       "description": "Uma aventura sombria...",
       "gameSystem": "D&D 5e",
       "maxPlayers": 5,
-      "price": 45.00,
+      "price": 45.0,
       "duration": 240,
       "status": "OPEN",
       "locationType": "VENUE",
@@ -208,6 +212,7 @@ http GET http://localhost:3001/api/sessions/session_123
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -276,6 +281,7 @@ http POST http://localhost:3001/api/sessions \
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -343,6 +349,7 @@ http GET http://localhost:3001/api/bookings/my \
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -350,7 +357,7 @@ http GET http://localhost:3001/api/bookings/my \
     {
       "id": "booking_123",
       "status": "CONFIRMED",
-      "amount": 45.00,
+      "amount": 45.0,
       "createdAt": "2025-01-18T10:00:00.000Z",
       "session": {
         "id": "session_123",
@@ -392,13 +399,14 @@ http POST http://localhost:3001/api/bookings \
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
   "data": {
     "id": "booking_789",
     "status": "PENDING",
-    "amount": 45.00,
+    "amount": 45.0,
     "session": {
       "title": "A Maldição de Strahd - Capítulo 1"
     }
@@ -441,6 +449,7 @@ http DELETE http://localhost:3001/api/bookings/booking_789 \
 ## Error Responses
 
 ### 400 Bad Request
+
 ```json
 {
   "success": false,
@@ -457,6 +466,7 @@ http DELETE http://localhost:3001/api/bookings/booking_789 \
 ```
 
 ### 401 Unauthorized
+
 ```json
 {
   "success": false,
@@ -465,6 +475,7 @@ http DELETE http://localhost:3001/api/bookings/booking_789 \
 ```
 
 ### 403 Forbidden
+
 ```json
 {
   "success": false,
@@ -473,6 +484,7 @@ http DELETE http://localhost:3001/api/bookings/booking_789 \
 ```
 
 ### 404 Not Found
+
 ```json
 {
   "success": false,
@@ -481,6 +493,7 @@ http DELETE http://localhost:3001/api/bookings/booking_789 \
 ```
 
 ### 500 Internal Server Error
+
 ```json
 {
   "success": false,
@@ -511,6 +524,7 @@ pnpm docker:logs:api
 ## Rate Limiting
 
 A API tem rate limiting configurado:
+
 - **100 requests por minuto** por IP
 - Headers de resposta incluem:
   - `X-RateLimit-Limit`: Limite total
@@ -522,5 +536,6 @@ A API tem rate limiting configurado:
 ## CORS
 
 CORS está habilitado para:
+
 - Desenvolvimento: `http://localhost:3000` (frontend)
 - Produção: Configurar via `CORS_ORIGIN` no `.env`

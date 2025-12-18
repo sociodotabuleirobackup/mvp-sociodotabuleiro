@@ -7,7 +7,9 @@ interface DashboardScreenProps {
   navigation: any;
 }
 
-export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({
+  navigation,
+}) => {
   const { user, logout } = useAuth();
 
   if (!user) return null;
@@ -20,7 +22,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         {user.role === UserRole.PLAYER && 'Jogador'}
         {user.role === UserRole.VENUE && 'Lojista'}
       </Text>
-      
+
       <View style={styles.content}>
         <Text style={styles.sectionTitle}>Funcionalidades em breve:</Text>
         <Text style={styles.feature}>• Criar e gerenciar sessões</Text>
@@ -28,8 +30,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         <Text style={styles.feature}>• Chat com outros usuários</Text>
         <Text style={styles.feature}>• Sistema de pagamentos</Text>
       </View>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={styles.logoutButton}
         onPress={() => {
           logout();

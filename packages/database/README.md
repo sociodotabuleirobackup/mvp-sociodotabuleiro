@@ -7,66 +7,80 @@ Este package gerencia o schema Prisma, migrations e seeds do projeto.
 O schema cobre todos os requisitos do MVP:
 
 ### Core Models
+
 - **User** - Usuários do sistema (Players, Masters, Store Owners, Admins)
 - **MasterProfile** - Perfil estendido para Mestres
 - **StoreProfile** - Perfil estendido para Lojistas
 
 ### Venue & Tables
+
 - **Venue** - Estabelecimentos físicos para sessões
 - **Table** - Mesas dentro dos estabelecimentos
 
 ### Sessions & Bookings
+
 - **Session** - Sessões de RPG (online ou presencial)
 - **Booking** - Reservas de jogadores nas sessões
 
 ### Payments & Subscriptions
+
 - **Payment** - Pagamentos (sessões, assinaturas, etc.)
 - **Subscription** - Assinaturas mensais/anuais
 
 ### Chat & Notifications
+
 - **Chat** - Salas de chat (por sessão, direto, grupo)
 - **ChatMessage** - Mensagens nos chats
 - **Notification** - Notificações do sistema
 
 ### Marketplace
+
 - **Adventure** - Aventuras/módulos à venda
 - **Purchase** - Compras de aventuras
 
 ### Food System
+
 - **FoodMenu** - Cardápios dos estabelecimentos
 - **FoodItem** - Items do cardápio
 - **FoodOrder** - Pedidos de comida
 - **FoodOrderItem** - Items dos pedidos
 
 ### Gamification
+
 - **Achievement** - Conquistas disponíveis
 - **UserAchievement** - Conquistas desbloqueadas pelos usuários
 
 ### Financial
+
 - **LedgerEntry** - Registro financeiro (créditos, débitos, comissões)
 
 ### Reviews
+
 - **Review** - Avaliações de sessões
 
 ## 🚀 Comandos
 
 ### Gerar Prisma Client
+
 ```bash
 pnpm db:generate
 ```
 
 ### Criar Migration
+
 ```bash
 pnpm db:migrate
 # Será solicitado um nome para a migration
 ```
 
 ### Aplicar Migrations (sem criar nova)
+
 ```bash
 pnpm db:push
 ```
 
 ### Resetar Database (⚠️ CUIDADO - apaga tudo)
+
 ```bash
 pnpm db:reset
 # Isso vai:
@@ -77,11 +91,13 @@ pnpm db:reset
 ```
 
 ### Rodar Seed
+
 ```bash
 pnpm db:seed
 ```
 
 ### Abrir Prisma Studio (UI para visualizar dados)
+
 ```bash
 pnpm db:studio
 # Abre em http://localhost:5555
@@ -92,16 +108,19 @@ pnpm db:studio
 O seed cria dados de exemplo para desenvolvimento:
 
 ### Usuários
+
 - **Mestre**: mestre@sociodotabuleiro.com
 - **Jogador**: jogador@sociodotabuleiro.com
 - **Lojista**: loja@sociodotabuleiro.com
 
 ### Estabelecimento
+
 - **Caverna do Dragão** - Espaço gamer em São Paulo
   - Mesa 1 (capacidade 6)
   - Mesa 2 (capacidade 8)
 
 ### Sessões
+
 1. **A Maldição de Strahd** (Presencial)
    - D&D 5e
    - 25/01/2025 às 14h
@@ -114,6 +133,7 @@ O seed cria dados de exemplo para desenvolvimento:
    - R$ 35,00
 
 ### Outros Dados
+
 - 1 Booking confirmado (Jogador na sessão de Strahd)
 - 1 Chat com 3 mensagens
 - 2 Notificações
@@ -125,6 +145,7 @@ O seed cria dados de exemplo para desenvolvimento:
 ## 🔄 Workflow Completo
 
 ### Setup Inicial
+
 ```bash
 # 1. Gerar Prisma Client
 pnpm db:generate
@@ -139,6 +160,7 @@ pnpm db:seed
 ### Durante Desenvolvimento
 
 #### Mudou o schema?
+
 ```bash
 # 1. Criar migration
 pnpm db:migrate
@@ -149,12 +171,14 @@ pnpm db:generate
 ```
 
 #### Quer resetar tudo?
+
 ```bash
 # Reseta banco e roda seed automaticamente
 pnpm db:reset
 ```
 
 #### Quer apenas atualizar dados?
+
 ```bash
 # Roda seed novamente (é idempotente)
 pnpm db:seed
@@ -198,12 +222,14 @@ DIRECT_URL="postgresql://postgres:postgres@postgres:5432/sociodotabuleiro?schema
 ## 🔍 Explorando os Dados
 
 ### Via Prisma Studio
+
 ```bash
 pnpm db:studio
 # Abre interface visual em http://localhost:5555
 ```
 
 ### Via Adminer (Docker)
+
 ```bash
 pnpm docker:up
 # Acesse http://localhost:8080
@@ -215,6 +241,7 @@ pnpm docker:up
 ```
 
 ### Via psql
+
 ```bash
 # Local
 psql postgresql://postgres:postgres@localhost:5432/sociodotabuleiro
@@ -230,7 +257,7 @@ docker compose exec postgres psql -U postgres -d sociodotabuleiro
 SELECT * FROM users;
 
 -- Ver sessões com mestres
-SELECT s.*, u.name as master_name 
+SELECT s.*, u.name as master_name
 FROM sessions s
 JOIN master_profiles mp ON s.master_id = mp.id
 JOIN users u ON mp.user_id = u.id;
@@ -252,6 +279,7 @@ ORDER BY cm.created_at;
 ## 🚨 Troubleshooting
 
 ### Erro: "Can't reach database server"
+
 ```bash
 # Verifique se o Postgres está rodando
 docker compose ps postgres
@@ -261,19 +289,23 @@ pg_isready -h localhost -p 5432
 ```
 
 ### Erro: "Migration failed"
+
 ```bash
 # Resete o banco e tente novamente
 pnpm db:reset
 ```
 
 ### Erro: "Prisma Client not generated"
+
 ```bash
 # Gere o client
 pnpm db:generate
 ```
 
 ### Seed falha ao rodar segunda vez
+
 O seed é idempotente e usa `upsert` para evitar duplicatas. Se falhar:
+
 ```bash
 # Resete e rode novamente
 pnpm db:reset

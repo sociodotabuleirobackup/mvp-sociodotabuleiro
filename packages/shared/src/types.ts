@@ -3,14 +3,14 @@ export enum UserRole {
   MASTER = 'MASTER',
   PLAYER = 'PLAYER',
   VENUE = 'VENUE',
-  ADMIN = 'ADMIN'
+  ADMIN = 'ADMIN',
 }
 
 export enum SessionStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
   COMPLETED = 'completed',
-  CANCELED = 'canceled'
+  CANCELED = 'canceled',
 }
 
 export enum PaymentStatus {
@@ -18,14 +18,14 @@ export enum PaymentStatus {
   RECEIVED = 'RECEIVED',
   CONFIRMED = 'CONFIRMED',
   OVERDUE = 'OVERDUE',
-  REFUNDED = 'REFUNDED'
+  REFUNDED = 'REFUNDED',
 }
 
 export enum ContractStatus {
   DRAFT = 'draft',
   PENDING_SIGNATURE = 'pending_signature',
   SIGNED = 'signed',
-  CANCELED = 'canceled'
+  CANCELED = 'canceled',
 }
 
 export enum BookingStatus {
@@ -33,7 +33,7 @@ export enum BookingStatus {
   PAID = 'PAID',
   CONFIRMED = 'CONFIRMED',
   CANCELED = 'CANCELED',
-  REFUNDED = 'REFUNDED'
+  REFUNDED = 'REFUNDED',
 }
 
 export enum OrderStatus {
@@ -41,7 +41,7 @@ export enum OrderStatus {
   PREPARING = 'PREPARING',
   READY = 'READY',
   DELIVERED = 'DELIVERED',
-  CANCELED = 'CANCELED'
+  CANCELED = 'CANCELED',
 }
 
 // --- Models ---
@@ -87,6 +87,23 @@ export interface Booking {
   status: BookingStatus;
   paymentId?: string;
   createdAt: string;
+  amount?: number;
+  // Populated by API when fetching bookings
+  session?: {
+    id: string;
+    title: string;
+    scheduledAt: string;
+    imageUrl?: string;
+    masterName?: string;
+    master?: {
+      user: {
+        name: string;
+      };
+    };
+    venue?: {
+      name: string;
+    };
+  };
 }
 
 export interface Notification {

@@ -22,12 +22,12 @@ pnpm docker:ps
 
 ## Serviços Disponíveis
 
-| Serviço   | URL                     | Descrição                    |
-|-----------|-------------------------|------------------------------|
-| Web       | http://localhost:3000   | Frontend React (Vite HMR)    |
-| API       | http://localhost:3001   | Backend Fastify              |
-| Postgres  | localhost:5432          | Banco de dados               |
-| Adminer   | http://localhost:8080   | UI para gerenciar o banco    |
+| Serviço  | URL                   | Descrição                 |
+| -------- | --------------------- | ------------------------- |
+| Web      | http://localhost:3000 | Frontend React (Vite HMR) |
+| API      | http://localhost:3001 | Backend Fastify           |
+| Postgres | localhost:5432        | Banco de dados            |
+| Adminer  | http://localhost:8080 | UI para gerenciar o banco |
 
 ## Comandos Disponíveis
 
@@ -61,6 +61,7 @@ pnpm docker:ps
 ## Acessando o Banco de Dados
 
 ### Via Adminer (UI)
+
 1. Acesse http://localhost:8080
 2. Sistema: PostgreSQL
 3. Servidor: postgres
@@ -69,6 +70,7 @@ pnpm docker:ps
 6. Base de dados: sociodotabuleiro
 
 ### Via CLI
+
 ```bash
 docker compose exec postgres psql -U postgres -d sociodotabuleiro
 ```
@@ -82,6 +84,7 @@ curl http://localhost:3001/healthz
 ```
 
 Resposta esperada:
+
 ```json
 {
   "success": true,
@@ -119,6 +122,7 @@ Os volumes estão configurados para sincronizar as pastas `src/` automaticamente
 ## Troubleshooting
 
 ### Erro de conexão com o banco
+
 ```bash
 # Verificar se o postgres está rodando
 docker compose ps postgres
@@ -131,6 +135,7 @@ docker compose restart postgres
 ```
 
 ### Erro de permissão
+
 ```bash
 # Limpar volumes e reconstruir
 pnpm docker:clean
@@ -139,7 +144,9 @@ pnpm docker:up
 ```
 
 ### Porta já em uso
+
 Edite o arquivo `.env` e altere as portas:
+
 ```env
 POSTGRES_PORT=5433
 API_PORT=3002

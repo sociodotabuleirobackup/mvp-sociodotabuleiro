@@ -28,13 +28,13 @@ export default function App() {
               },
             }}
           >
-            <Stack.Screen 
-              name="Welcome" 
+            <Stack.Screen
+              name="Welcome"
               component={WelcomeScreen}
               options={{ headerShown: false }}
             />
-            <Stack.Screen 
-              name="Dashboard" 
+            <Stack.Screen
+              name="Dashboard"
               component={DashboardScreen}
               options={{ title: 'Painel' }}
             />

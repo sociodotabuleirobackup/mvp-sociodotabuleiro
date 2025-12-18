@@ -3,6 +3,7 @@
 ## ✅ O que foi feito
 
 ### 1. Reorganização da Estrutura
+
 - ✅ Removidos arquivos duplicados da raiz (App.tsx, index.tsx, types.ts, etc.)
 - ✅ Migrado frontend completo para `apps/web/src`
 - ✅ Criada estrutura para mobile app em `apps/mobile`
@@ -31,29 +32,34 @@
 ### 3. Packages Criados
 
 #### @socio-do-tabuleiro/shared
+
 - Tipos TypeScript compartilhados
 - Funções utilitárias (formatação, validação)
 - Constantes da aplicação
 - Schemas de validação (Zod)
 
 #### @socio-do-tabuleiro/database
+
 - Schema Prisma
 - Prisma Client configurado
 - Migrations
 - Seeds
 
 #### @socio-do-tabuleiro/web
+
 - Frontend React
 - Vite para build
 - Tailwind CSS
 - React Router
 
 #### @socio-do-tabuleiro/api
+
 - Backend Fastify
 - TypeScript
 - Rotas organizadas
 
 #### @socio-do-tabuleiro/mobile
+
 - React Native + Expo
 - Estrutura básica criada
 - Navegação configurada
@@ -88,12 +94,14 @@ pnpm db:studio        # Abrir Prisma Studio
 Todos os imports foram atualizados para usar os novos packages:
 
 **Antes:**
+
 ```typescript
 import { User } from './types';
 import { formatCurrency } from '../utils';
 ```
 
 **Depois:**
+
 ```typescript
 import { User, formatCurrency } from '@socio-do-tabuleiro/shared';
 ```
@@ -112,8 +120,8 @@ import { User, formatCurrency } from '@socio-do-tabuleiro/shared';
 - ❌ services/
 - ❌ lib/
 - ❌ assets/
-- ❌ TASK_*.md
-- ❌ setup-*.sh
+- ❌ TASK\_\*.md
+- ❌ setup-\*.sh
 - ❌ database-complete.sql
 
 ## ✅ Testes Realizados
@@ -128,6 +136,7 @@ import { User, formatCurrency } from '@socio-do-tabuleiro/shared';
 ## 🔧 Próximos Passos
 
 ### Imediatos
+
 1. **Alinhar Schema Prisma com Código da API**
    - Atualizar rotas para usar campos corretos do schema
    - Ou atualizar schema para match com código existente
@@ -141,6 +150,7 @@ import { User, formatCurrency } from '@socio-do-tabuleiro/shared';
    - Testar shared package em todos os apps
 
 ### Médio Prazo
+
 1. **Testes Automatizados**
    - Unit tests para shared package
    - Integration tests para API
@@ -157,12 +167,14 @@ import { User, formatCurrency } from '@socio-do-tabuleiro/shared';
 ## 📊 Métricas
 
 ### Antes
+
 - Arquivos na raiz: ~30
 - Estrutura confusa
 - Código duplicado
 - Imports relativos complexos
 
 ### Depois
+
 - Arquivos na raiz: ~10 (configs)
 - Estrutura clara e organizada
 - Código compartilhado em packages

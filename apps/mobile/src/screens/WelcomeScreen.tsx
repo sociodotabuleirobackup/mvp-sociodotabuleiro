@@ -19,23 +19,23 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Sócio do Tabuleiro</Text>
       <Text style={styles.subtitle}>Marketplace para RPG</Text>
-      
+
       <View style={styles.buttonContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.button}
           onPress={() => handleLogin(UserRole.MASTER)}
         >
           <Text style={styles.buttonText}>Entrar como Mestre</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.button}
           onPress={() => handleLogin(UserRole.PLAYER)}
         >
           <Text style={styles.buttonText}>Entrar como Jogador</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.button}
           onPress={() => handleLogin(UserRole.VENUE)}
         >

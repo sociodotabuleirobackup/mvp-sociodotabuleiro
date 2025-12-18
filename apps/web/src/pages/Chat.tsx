@@ -3,13 +3,37 @@ import { ChatThread, ChatMessage } from '@socio-do-tabuleiro/shared';
 
 // Mock Data
 const THREADS: ChatThread[] = [
-  { id: '1', participantName: 'Mestre Alex', participantAvatar: 'https://picsum.photos/seed/master1/50', lastMessage: 'Podemos começar às 19h?', lastMessageTime: '10:30', unreadCount: 1 },
-  { id: '2', participantName: 'Grupo: A Maldição de Strahd', participantAvatar: 'https://picsum.photos/seed/strahd/50', lastMessage: 'João: Eu levo os snacks!', lastMessageTime: 'Ontem', unreadCount: 0 },
+  {
+    id: '1',
+    participantName: 'Mestre Alex',
+    participantAvatar: 'https://picsum.photos/seed/master1/50',
+    lastMessage: 'Podemos começar às 19h?',
+    lastMessageTime: '10:30',
+    unreadCount: 1,
+  },
+  {
+    id: '2',
+    participantName: 'Grupo: A Maldição de Strahd',
+    participantAvatar: 'https://picsum.photos/seed/strahd/50',
+    lastMessage: 'João: Eu levo os snacks!',
+    lastMessageTime: 'Ontem',
+    unreadCount: 0,
+  },
 ];
 
 const MESSAGES: ChatMessage[] = [
-  { id: '1', senderId: 'other', text: 'Olá! Tudo certo para a sessão de hoje?', timestamp: '10:28' },
-  { id: '2', senderId: 'other', text: 'Podemos começar às 19h?', timestamp: '10:30' },
+  {
+    id: '1',
+    senderId: 'other',
+    text: 'Olá! Tudo certo para a sessão de hoje?',
+    timestamp: '10:28',
+  },
+  {
+    id: '2',
+    senderId: 'other',
+    text: 'Podemos começar às 19h?',
+    timestamp: '10:30',
+  },
 ];
 
 export const Chat: React.FC = () => {
@@ -27,42 +51,64 @@ export const Chat: React.FC = () => {
       id: Date.now().toString(),
       senderId: 'me',
       text: newMessage,
-      timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
     };
-    
+
     setMessages([...messages, msg]);
     setNewMessage('');
   };
 
   return (
     <div className="h-[calc(100vh-64px)] flex bg-background max-w-7xl mx-auto sm:px-4 sm:py-4">
-      
       {/* Threads List (Sidebar) */}
-      <div className={`w-full sm:w-80 md:w-96 flex-shrink-0 bg-surface sm:rounded-l-2xl border-r border-white/5 flex flex-col ${activeThreadId ? 'hidden sm:flex' : 'flex'}`}>
+      <div
+        className={`w-full sm:w-80 md:w-96 flex-shrink-0 bg-surface sm:rounded-l-2xl border-r border-white/5 flex flex-col ${activeThreadId ? 'hidden sm:flex' : 'flex'}`}
+      >
         <div className="p-4 border-b border-white/5">
           <h2 className="text-xl font-display font-bold">Mensagens</h2>
           <div className="mt-2 relative">
-            <input type="text" placeholder="Buscar..." className="w-full bg-black/20 border border-white/5 rounded-lg py-2 pl-8 pr-4 text-sm focus:border-primary/50 outline-none" />
-            <span className="material-symbols-outlined absolute left-2 top-2 text-gray-500 text-lg">search</span>
+            <input
+              type="text"
+              placeholder="Buscar..."
+              className="w-full bg-black/20 border border-white/5 rounded-lg py-2 pl-8 pr-4 text-sm focus:border-primary/50 outline-none"
+            />
+            <span className="material-symbols-outlined absolute left-2 top-2 text-gray-500 text-lg">
+              search
+            </span>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           {THREADS.map(thread => (
-            <div 
+            <div
               key={thread.id}
               onClick={() => setActiveThreadId(thread.id)}
               className={`p-4 flex gap-3 cursor-pointer transition-colors hover:bg-white/5 ${activeThreadId === thread.id ? 'bg-white/5 border-l-2 border-primary' : ''}`}
             >
               <div className="relative">
-                <img src={thread.participantAvatar} alt="" className="w-12 h-12 rounded-full object-cover" />
-                {thread.unreadCount > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border border-surface"></span>}
+                <img
+                  src={thread.participantAvatar}
+                  alt=""
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+                {thread.unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border border-surface"></span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="font-bold text-sm truncate">{thread.participantName}</h3>
-                  <span className="text-[10px] text-gray-500">{thread.lastMessageTime}</span>
+                  <h3 className="font-bold text-sm truncate">
+                    {thread.participantName}
+                  </h3>
+                  <span className="text-[10px] text-gray-500">
+                    {thread.lastMessageTime}
+                  </span>
                 </div>
-                <p className={`text-xs truncate ${thread.unreadCount > 0 ? 'text-white font-bold' : 'text-gray-500'}`}>
+                <p
+                  className={`text-xs truncate ${thread.unreadCount > 0 ? 'text-white font-bold' : 'text-gray-500'}`}
+                >
                   {thread.lastMessage}
                 </p>
               </div>
@@ -72,19 +118,31 @@ export const Chat: React.FC = () => {
       </div>
 
       {/* Chat Window */}
-      <div className={`flex-1 bg-surface/50 sm:rounded-r-2xl flex flex-col ${!activeThreadId ? 'hidden sm:flex' : 'flex'}`}>
+      <div
+        className={`flex-1 bg-surface/50 sm:rounded-r-2xl flex flex-col ${!activeThreadId ? 'hidden sm:flex' : 'flex'}`}
+      >
         {activeThread ? (
           <>
             {/* Chat Header */}
             <div className="p-4 border-b border-white/5 flex items-center gap-3 bg-surface">
-              <button onClick={() => setActiveThreadId('')} className="sm:hidden text-gray-400">
+              <button
+                onClick={() => setActiveThreadId('')}
+                className="sm:hidden text-gray-400"
+              >
                 <span className="material-symbols-outlined">arrow_back</span>
               </button>
-              <img src={activeThread.participantAvatar} alt="" className="w-10 h-10 rounded-full" />
+              <img
+                src={activeThread.participantAvatar}
+                alt=""
+                className="w-10 h-10 rounded-full"
+              />
               <div>
-                <h3 className="font-bold text-sm">{activeThread.participantName}</h3>
+                <h3 className="font-bold text-sm">
+                  {activeThread.participantName}
+                </h3>
                 <span className="text-xs text-green-400 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span> Online
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>{' '}
+                  Online
                 </span>
               </div>
             </div>
@@ -92,10 +150,17 @@ export const Chat: React.FC = () => {
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.map(msg => (
-                <div key={msg.id} className={`flex ${msg.senderId === 'me' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[70%] p-3 rounded-2xl text-sm ${msg.senderId === 'me' ? 'bg-primary text-white rounded-tr-none' : 'bg-white/10 text-gray-200 rounded-tl-none'}`}>
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.senderId === 'me' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[70%] p-3 rounded-2xl text-sm ${msg.senderId === 'me' ? 'bg-primary text-white rounded-tr-none' : 'bg-white/10 text-gray-200 rounded-tl-none'}`}
+                  >
                     <p>{msg.text}</p>
-                    <span className={`text-[10px] block mt-1 text-right ${msg.senderId === 'me' ? 'text-white/60' : 'text-gray-500'}`}>
+                    <span
+                      className={`text-[10px] block mt-1 text-right ${msg.senderId === 'me' ? 'text-white/60' : 'text-gray-500'}`}
+                    >
                       {msg.timestamp}
                     </span>
                   </div>
@@ -104,16 +169,22 @@ export const Chat: React.FC = () => {
             </div>
 
             {/* Input Area */}
-            <form onSubmit={handleSend} className="p-4 border-t border-white/5 bg-surface">
+            <form
+              onSubmit={handleSend}
+              className="p-4 border-t border-white/5 bg-surface"
+            >
               <div className="flex gap-2">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Digite sua mensagem..." 
+                  onChange={e => setNewMessage(e.target.value)}
+                  placeholder="Digite sua mensagem..."
                   className="flex-1 bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:border-primary outline-none"
                 />
-                <button type="submit" className="p-3 bg-primary hover:bg-primary-hover rounded-xl text-white transition-colors">
+                <button
+                  type="submit"
+                  className="p-3 bg-primary hover:bg-primary-hover rounded-xl text-white transition-colors"
+                >
                   <span className="material-symbols-outlined">send</span>
                 </button>
               </div>
@@ -121,7 +192,9 @@ export const Chat: React.FC = () => {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
-            <span className="material-symbols-outlined text-6xl mb-4 opacity-20">forum</span>
+            <span className="material-symbols-outlined text-6xl mb-4 opacity-20">
+              forum
+            </span>
             <p>Selecione uma conversa para começar</p>
           </div>
         )}

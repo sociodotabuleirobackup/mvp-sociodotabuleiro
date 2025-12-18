@@ -1,4 +1,3 @@
-
 import { ContractStatus } from '@socio-do-tabuleiro/shared';
 
 /**
@@ -26,11 +25,11 @@ class ZapSignService {
   async createFounderPact(signer: Signer): Promise<ContractResponse> {
     await this.delay(1000);
     console.log(`[ZapSign] Founder Pact generated for ${signer.email}`);
-    
+
     return {
       docId: `doc_${Math.random().toString(36).substr(2, 9)}`,
       signUrl: 'https://app.zapsign.com.br/verificar/mock-doc',
-      status: ContractStatus.PENDING_SIGNATURE
+      status: ContractStatus.PENDING_SIGNATURE,
     };
   }
 

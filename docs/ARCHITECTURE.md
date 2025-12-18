@@ -74,20 +74,24 @@ socio-do-tabuleiro/
 ## 🎯 Benefícios da Nova Estrutura
 
 ### 1. **Separação Clara de Responsabilidades**
+
 - **apps/**: Aplicações executáveis (API, Web, Mobile)
 - **packages/**: Código compartilhado entre aplicações
 - **tools/**: Scripts e ferramentas de desenvolvimento
 
 ### 2. **Reutilização de Código**
+
 - **@socio-do-tabuleiro/shared**: Tipos, utils e constantes compartilhadas
 - **@socio-do-tabuleiro/database**: Schema e client do banco compartilhado
 
 ### 3. **Desenvolvimento Independente**
+
 - Cada app pode ser desenvolvido, testado e deployado independentemente
 - Dependencies isoladas por aplicação
 - TypeScript configurado adequadamente para cada contexto
 
 ### 4. **Escalabilidade**
+
 - Fácil adição de novos apps (admin, dashboard, etc.)
 - Packages podem ser extraídos para NPM se necessário
 - Estrutura preparada para microserviços
@@ -95,6 +99,7 @@ socio-do-tabuleiro/
 ## 🔧 Scripts de Desenvolvimento
 
 ### Comandos Globais (na raiz)
+
 ```bash
 # Desenvolvimento
 pnpm dev:api          # Rodar API
@@ -119,6 +124,7 @@ pnpm db:studio        # Abrir Prisma Studio
 ```
 
 ### Comandos Específicos por App
+
 ```bash
 # Web App
 cd apps/web
@@ -142,6 +148,7 @@ pnpm ios              # Rodar no iOS
 ## 📦 Packages Compartilhados
 
 ### @socio-do-tabuleiro/shared
+
 Contém todo código compartilhado entre as aplicações:
 
 - **types.ts**: Interfaces e enums TypeScript
@@ -149,6 +156,7 @@ Contém todo código compartilhado entre as aplicações:
 - **constants.ts**: Constantes da aplicação (cores, endpoints, etc.)
 
 ### @socio-do-tabuleiro/database
+
 Gerencia todo acesso ao banco de dados:
 
 - **schema.prisma**: Definição das tabelas
@@ -158,16 +166,19 @@ Gerencia todo acesso ao banco de dados:
 ## 🚀 Deploy Strategy
 
 ### Frontend Web
+
 - Build estático com Vite
 - Deploy em Vercel/Netlify
 - PWA com service worker
 
 ### Backend API
+
 - Build com TypeScript
 - Deploy em Railway/Render
 - Docker container
 
 ### Mobile App
+
 - Build com Expo EAS
 - Deploy nas stores (iOS/Android)
 - OTA updates com Expo

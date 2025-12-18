@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database...')
+  console.log('🌱 Seeding database...');
 
   // Create sample profiles
   const player = await prisma.profile.upsert({
@@ -14,7 +14,7 @@ async function main() {
       name: 'João Jogador',
       role: 'PLAYER',
     },
-  })
+  });
 
   const master = await prisma.profile.upsert({
     where: { email: 'master@socio.com' },
@@ -24,7 +24,7 @@ async function main() {
       name: 'Maria Mestre',
       role: 'MASTER',
     },
-  })
+  });
 
   const venueOwner = await prisma.profile.upsert({
     where: { email: 'venue@socio.com' },
@@ -34,7 +34,7 @@ async function main() {
       name: 'Carlos Lojista',
       role: 'VENUE_OWNER',
     },
-  })
+  });
 
   // Create sample venue
   const venue = await prisma.venue.create({
@@ -47,7 +47,7 @@ async function main() {
       state: 'SP',
       zipCode: '01234-567',
     },
-  })
+  });
 
   // Create venue table
   const table = await prisma.venueTable.create({
@@ -57,7 +57,7 @@ async function main() {
       capacity: 6,
       pricePerHour: 25.0,
     },
-  })
+  });
 
   // Create sample session
   const session = await prisma.session.create({
@@ -73,7 +73,7 @@ async function main() {
       duration: 240, // 4 hours
       scheduledAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week from now
     },
-  })
+  });
 
   // Create sample adventure
   const adventure = await prisma.adventure.create({
@@ -85,7 +85,7 @@ async function main() {
       difficulty: 2,
       duration: 180,
     },
-  })
+  });
 
   // Create achievements
   await prisma.achievement.createMany({
@@ -106,18 +106,18 @@ async function main() {
         points: 50,
       },
     ],
-  })
+  });
 
-  console.log('✅ Seed completed!')
-  console.log({ player, master, venueOwner, venue, session, adventure })
+  console.log('✅ Seed completed!');
+  console.log({ player, master, venueOwner, venue, session, adventure });
 }
 
 main()
   .then(async () => {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+  .catch(async e => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

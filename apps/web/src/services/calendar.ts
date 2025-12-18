@@ -1,4 +1,3 @@
-
 import { Session } from '@socio-do-tabuleiro/shared';
 
 /**
@@ -16,14 +15,22 @@ class GoogleCalendarService {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async createSessionEvent(session: Session, _userEmail: string): Promise<CalendarEventResponse> {
+  async createSessionEvent(
+    session: Session,
+    _userEmail: string
+  ): Promise<CalendarEventResponse> {
     await this.delay(800);
-    console.log(`[G-Calendar] Event created: "${session.title}" on ${session.date}`);
+    console.log(
+      `[G-Calendar] Event created: "${session.title}" on ${session.date}`
+    );
 
     return {
       eventId: `evt_${Math.random().toString(36).substr(2, 12)}`,
-      meetLink: session.locationType === 'ONLINE' ? 'https://meet.google.com/abc-defg-hij' : undefined,
-      htmlLink: 'https://calendar.google.com/event?id=mock'
+      meetLink:
+        session.locationType === 'ONLINE'
+          ? 'https://meet.google.com/abc-defg-hij'
+          : undefined,
+      htmlLink: 'https://calendar.google.com/event?id=mock',
     };
   }
 

@@ -11,6 +11,8 @@
     "db:reset": "prisma migrate reset --force",
     "db:push": "prisma db push",
     "build": "tsc",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" \"prisma/**/*.{ts,tsx}\"",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" \"prisma/**/*.{ts,tsx}\" --fix",
     "typecheck": "tsc --noEmit"
   },
   "prisma": {

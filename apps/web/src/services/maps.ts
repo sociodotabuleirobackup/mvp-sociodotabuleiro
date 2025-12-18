@@ -18,13 +18,13 @@ class GoogleMapsService {
       }
 
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        position => {
           resolve({
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
           });
         },
-        (error) => {
+        error => {
           console.error('Erro ao obter localização', error);
           reject(error);
         }
@@ -36,12 +36,12 @@ class GoogleMapsService {
   async geocode(address: string): Promise<GeoCoordinates> {
     await this.delay(600);
     console.log(`[G-Maps] Geocoding address: ${address}`);
-    
+
     // Mock coordinates (São Paulo center approx)
     // Em produção, chamaria a API Geocoding do Google
     return {
-      lat: -23.550520,
-      lng: -46.633308
+      lat: -23.55052,
+      lng: -46.633308,
     };
   }
 
@@ -64,7 +64,10 @@ class GoogleMapsService {
   }
 
   // Wrapper assíncrono para manter compatibilidade com chamadas de API futuras
-  async getDistance(origin: GeoCoordinates, destination: GeoCoordinates): Promise<string> {
+  async getDistance(
+    origin: GeoCoordinates,
+    destination: GeoCoordinates
+  ): Promise<string> {
     const dist = this.calculateDistance(origin, destination);
     return `${dist} km`;
   }
@@ -73,7 +76,7 @@ class GoogleMapsService {
   getDirectionsLink(destinationAddress: string): string {
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destinationAddress)}`;
   }
-  
+
   // Gerar link de busca
   getSearchLink(query: string): string {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;

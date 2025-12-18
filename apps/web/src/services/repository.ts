@@ -1,4 +1,3 @@
-
 import { Session, Booking, BookingStatus } from '@socio-do-tabuleiro/shared';
 
 /**
@@ -12,7 +11,7 @@ class Repository {
   }
 
   // --- Sessions ---
-  
+
   async createSession(session: Omit<Session, 'id'>): Promise<string> {
     await this.delay(500);
     console.log(`[Repo] Criando sessão no banco de dados relacional`, session);
@@ -26,13 +25,18 @@ class Repository {
 
   // --- Bookings ---
 
-  async createBooking(booking: Omit<Booking, 'id' | 'status' | 'createdAt'>): Promise<string> {
+  async createBooking(
+    booking: Omit<Booking, 'id' | 'status' | 'createdAt'>
+  ): Promise<string> {
     await this.delay(500);
     console.log(`[Repo] Criando reserva (booking)`, booking);
     return `book_${Math.random().toString(36).substring(2, 11)}`;
   }
 
-  async updateBookingStatus(bookingId: string, status: BookingStatus): Promise<void> {
+  async updateBookingStatus(
+    bookingId: string,
+    status: BookingStatus
+  ): Promise<void> {
     await this.delay(300);
     console.log(`[Repo] Atualizando reserva ${bookingId} para ${status}`);
   }
@@ -41,7 +45,9 @@ class Repository {
 
   async purchaseAsset(userId: string, assetId: string): Promise<boolean> {
     await this.delay(1000);
-    console.log(`[Repo] Registrando compra: Usuário ${userId} -> Ativo ${assetId}`);
+    console.log(
+      `[Repo] Registrando compra: Usuário ${userId} -> Ativo ${assetId}`
+    );
     return true;
   }
 }
