@@ -20,7 +20,7 @@ export const prismaPlugin: FastifyPluginAsync = fp(async (server: FastifyInstanc
       server.log.info('🔌 Prisma disconnected')
     })
   } catch (error) {
-    server.log.error('❌ Prisma connection failed:', error)
+    server.log.error({ error }, '❌ Prisma connection failed')
     throw error
   }
 })

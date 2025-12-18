@@ -11,7 +11,7 @@ export async function healthRoutes(app: FastifyInstance) {
         database: 'connected'
       }
     } catch (error) {
-      app.log.error('Health check failed:', error)
+      app.log.error({ error }, 'Health check failed')
       return { 
         success: false, 
         status: 'unhealthy',

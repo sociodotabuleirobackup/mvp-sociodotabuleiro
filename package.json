@@ -4,15 +4,12 @@
   "private": true,
   "description": "Marketplace para Mestres, Lojistas e Jogadores de RPG",
   "scripts": {
-    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
-    "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter api dev",
     "build": "pnpm --filter \"./packages/*\" build && pnpm --filter \"./apps/*\" build",
     "db:generate": "pnpm --filter db db:generate",
     "db:migrate": "pnpm --filter db db:migrate",
     "db:seed": "pnpm --filter db db:seed",
     "db:studio": "pnpm --filter db db:studio",
-    "lint": "pnpm --recursive lint",
     "type-check": "pnpm --recursive type-check"
   },
   "devDependencies": {
