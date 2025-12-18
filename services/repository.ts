@@ -1,5 +1,6 @@
 
 import { Session, Booking, User, Asset, BookingStatus } from '../types';
+import { prisma } from '../lib/db';
 
 /**
  * Data Access Layer Stub
