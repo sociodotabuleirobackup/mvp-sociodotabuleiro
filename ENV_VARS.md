@@ -4,11 +4,15 @@ This document explains all environment variables used in the Sócio do Tabuleiro
 
 ## Overview
 
-The application uses environment variables for configuration across different environments (development, staging, production). Each component has its own `.env` file:
+The application uses a **single consolidated** `.env` file in the root directory for all environment variables across the entire monorepo. This simplifies configuration management and ensures consistency.
 
-- **Root** (`.env`) - Global configuration
-- **API** (`apps/api/.env`) - Backend server configuration
-- **Web** (`apps/web/.env`) - Frontend configuration
+- **Root** (`.env`) - **ALL configuration variables** for API, Web, Database, and External Services
+
+**Benefits of consolidated approach:**
+- Single source of truth for all environment variables
+- Easier to manage and maintain
+- Prevents configuration drift between services
+- Simplified deployment and CI/CD setup
 
 ## Security Notes
 

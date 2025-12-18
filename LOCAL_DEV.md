@@ -25,12 +25,11 @@ pnpm install
 ### 2. Environment Setup
 
 ```bash
-# Copy environment files
+# Copy the consolidated environment file
 cp .env.example .env
-cp apps/api/.env.example apps/api/.env
-cp apps/web/.env.example apps/web/.env
 
-# Edit the .env files with your values (optional for development)
+# Edit the .env file with your values (optional for development)
+# All variables for API, Web, and Database are in this single file
 ```
 
 ### 3. Start Development Environment
