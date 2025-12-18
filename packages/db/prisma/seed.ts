@@ -1,135 +1,123 @@
+import { PrismaClient } from '@prisma/client'
 
-import { PrismaClient, UserRole, SessionStatus, BookingStatus, ContractStatus } from "@prisma/client";
-
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
-  console.log("🌱 Iniciando sementeira (seed) do Sócio do Tabuleiro...");
+  console.log('🌱 Seeding database...')
 
-  // 1. Criar Usuários
-  console.log("... Criando Perfis");
-  
-  const master = await prisma.user.upsert({
-    where: { email: "mestre@exemplo.com" },
+  // Create sample profiles
+  const player = await prisma.profile.upsert({
+    where: { email: 'player@socio.com' },
     update: {},
     create: {
-      uid: "seed_master_001",
-      name: "Mestre Alex",
-      email: "mestre@exemplo.com",
-      role: UserRole.MASTER,
-      avatarUrl: "https://picsum.photos/seed/master1/200",
-      founderPactStatus: ContractStatus.SIGNED,
-      level: 5,
+      email: 'player@socio.com',
+      name: 'João Jogador',
+      role: 'PLAYER',
     },
-  });
+  })
 
-  const player = await prisma.user.upsert({
-    where: { email: "jogador@exemplo.com" },
+  const master = await prisma.profile.upsert({
+    where: { email: 'master@socio.com' },
     update: {},
     create: {
-      uid: "seed_player_001",
-      name: "Aventureiro John",
-      email: "jogador@exemplo.com",
-      role: UserRole.PLAYER,
-      avatarUrl: "https://picsum.photos/seed/player1/200",
-      level: 2,
+      email: 'master@socio.com',
+      name: 'Maria Mestre',
+      role: 'MASTER',
     },
-  });
+  })
 
-  const venueOwner = await prisma.user.upsert({
-    where: { email: "loja@exemplo.com" },
+  const venueOwner = await prisma.profile.upsert({
+    where: { email: 'venue@socio.com' },
     update: {},
     create: {
-      uid: "seed_owner_001",
-      name: "Dono da Taverna",
-      email: "loja@exemplo.com",
-      role: UserRole.VENUE,
-      avatarUrl: "https://picsum.photos/seed/venue1/200",
-      founderPactStatus: ContractStatus.SIGNED,
+      email: 'venue@socio.com',
+      name: 'Carlos Lojista',
+      role: 'VENUE_OWNER',
     },
-  });
+  })
 
-  // 2. Criar Local (Venue) + Mesas
-  console.log("... Criando Venue e Mesas");
+  // Create sample venue
   const venue = await prisma.venue.create({
     data: {
-      ownerId: venueOwner.uid,
-      name: "Caverna do Dragão",
-      address: "Rua dos RPGistas, 123 - São Paulo, SP",
-      description: "O melhor espaço para sua mesa de RPG com snacks temáticos.",
-      isOpen: true,
-      amenities: ["Wi-Fi", "Ar Condicionado", "Lanchonete"],
-      tables: {
-        create: [
-          { name: "Mesa VIP Masmorra", capacity: 6, pricePerHour: 20.0 },
-          { name: "Mesa Central", capacity: 8, pricePerHour: 15.0 },
-        ],
-      },
+      ownerId: venueOwner.id,
+      name: 'Taverna do Dragão',
+      description: 'Loja especializada em RPG e board games',
+      address: 'Rua dos Jogos, 123',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01234-567',
     },
-  });
+  })
 
-  // 3. Criar Sessão
-  console.log("... Criando Sessão");
+  // Create venue table
+  const table = await prisma.venueTable.create({
+    data: {
+      venueId: venue.id,
+      name: 'Mesa Principal',
+      capacity: 6,
+      pricePerHour: 25.0,
+    },
+  })
+
+  // Create sample session
   const session = await prisma.session.create({
     data: {
-      masterId: master.uid,
-      title: "A Maldição de Strahd",
-      system: "D&D 5e",
-      description: "Uma campanha épica de terror gótico nas terras de Barovia. Jogadores nível 3.",
-      date: new Date(Date.now() + 86400000 * 3), // 3 dias no futuro
-      price: 35.0,
-      playersMax: 5,
-      playersCurrent: 1,
-      status: SessionStatus.PUBLISHED,
-      imageUrl: "https://picsum.photos/seed/strahd/800/400",
-      locationType: "VENUE",
+      masterId: master.id,
       venueId: venue.id,
-      venueName: venue.name,
-      venueAddress: venue.address,
-      tags: ["Horror", "Roleplay", "D&D"],
+      tableId: table.id,
+      title: 'D&D 5e - A Maldição de Strahd',
+      description: 'Aventura épica em Barovia',
+      gameSystem: 'D&D 5e',
+      maxPlayers: 5,
+      price: 50.0,
+      duration: 240, // 4 hours
+      scheduledAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week from now
     },
-  });
+  })
 
-  // 4. Criar Reserva
-  console.log("... Criando Reserva");
-  await prisma.booking.create({
+  // Create sample adventure
+  const adventure = await prisma.adventure.create({
     data: {
-      sessionId: session.id,
-      playerId: player.uid,
-      status: BookingStatus.CONFIRMED,
-      amount: session.price,
-      paymentId: "pay_mock_999",
+      title: 'O Tesouro Perdido',
+      description: 'Uma aventura para iniciantes',
+      price: 15.0,
+      gameSystem: 'D&D 5e',
+      difficulty: 2,
+      duration: 180,
     },
-  });
+  })
 
-  // 5. Criar Chat e Mensagens
-  console.log("... Criando Chat e Mensagens");
-  const chat = await prisma.chatThread.create({
-    data: {
-      sessionId: session.id,
-      participantIds: [master.uid, player.uid],
-      lastMessage: "Obrigado por aceitar minha ficha!",
-      participants: {
-        connect: [{ uid: master.uid }, { uid: player.uid }]
+  // Create achievements
+  await prisma.achievement.createMany({
+    data: [
+      {
+        name: 'Primeiro Jogo',
+        description: 'Participou da primeira sessão',
+        points: 10,
       },
-      messages: {
-        create: [
-          { senderId: master.uid, text: "Bem-vindo à Barovia, aventureiro.", timestamp: new Date() },
-          { senderId: player.uid, text: "Obrigado por aceitar minha ficha!", timestamp: new Date(Date.now() + 1000) },
-        ],
+      {
+        name: 'Mestre Iniciante',
+        description: 'Mestrou a primeira sessão',
+        points: 25,
       },
-    },
-  });
+      {
+        name: 'Colecionador',
+        description: 'Comprou 5 aventuras',
+        points: 50,
+      },
+    ],
+  })
 
-  console.log("✅ Seed finalizado com sucesso!");
+  console.log('✅ Seed completed!')
+  console.log({ player, master, venueOwner, venue, session, adventure })
 }
 
 main()
-  .catch((e) => {
-    console.error("❌ Erro durante o seed:", e);
-    // Use casting to any to fix the TypeScript error where exit might not be detected on process type
-    (process as any).exit(1);
+  .then(async () => {
+    await prisma.$disconnect()
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    process.exit(1)
+  })

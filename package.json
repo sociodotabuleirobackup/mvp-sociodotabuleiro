@@ -1,52 +1,22 @@
-
 {
   "name": "socio-do-tabuleiro",
   "version": "1.0.0",
   "private": true,
-  "description": "Marketplace para Mestres, Lojistas e Jogadores de RPG.",
-  "main": "index.js",
+  "description": "Marketplace para Mestres, Lojistas e Jogadores de RPG",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "db:generate": "pnpm --filter @socio/db db:generate",
-    "db:migrate": "pnpm --filter @socio/db db:migrate:dev",
-    "db:seed": "pnpm --filter @socio/db db:seed",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
-  },
-  "keywords": [
-    "rpg",
-    "boardgames",
-    "marketplace",
-    "prisma",
-    "supabase"
-  ],
-  "author": "Sócio do Tabuleiro Team",
-  "license": "MIT",
-  "dependencies": {
-    "@prisma/client": "^5.10.0",
-    "@supabase/supabase-js": "^2.39.7",
-    "dotenv": "^16.4.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router": "^7.11.0"
+    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "build": "pnpm --filter \"./packages/*\" build && pnpm --filter \"./apps/*\" build",
+    "db:generate": "pnpm --filter db db:generate",
+    "db:migrate": "pnpm --filter db db:migrate",
+    "db:seed": "pnpm --filter db db:seed",
+    "db:studio": "pnpm --filter db db:studio",
+    "lint": "pnpm --recursive lint",
+    "type-check": "pnpm --recursive type-check"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@typescript-eslint/eslint-plugin": "^7.0.2",
-    "@typescript-eslint/parser": "^7.0.2",
-    "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.17",
-    "eslint": "^8.56.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
-    "postcss": "^8.4.35",
-    "prisma": "^5.10.0",
-    "tailwindcss": "^3.4.1",
-    "tsx": "^4.7.1",
-    "typescript": "^5.3.3",
-    "vite": "^5.1.4"
+    "typescript": "^5.3.3"
   }
 }

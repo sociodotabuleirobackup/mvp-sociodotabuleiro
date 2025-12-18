@@ -1,60 +1,64 @@
-
-import fp from 'fastify-plugin';
-import { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
-import { createRemoteJWKSet, jwtVerify } from 'jose';
+import fp from 'fastify-plugin'
+import { FastifyInstance, FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify'
+import { createRemoteJWKSet, jwtVerify } from 'jose'
 
 declare module 'fastify' {
   interface FastifyInstance {
-    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>
   }
   interface FastifyRequest {
     user: {
-      id: string;
-    };
+      id: string
+      email: string
+    }
   }
 }
 
-const authPlugin: FastifyPluginAsync = fp(async (server) => {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance) => {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 
   if (!supabaseUrl) {
-    server.log.error('SUPABASE_URL is missing in environment variables');
-    throw new Error('Missing SUPABASE_URL');
+    throw new Error('SUPABASE_URL is required')
   }
 
-  // Configura o JWKS (JSON Web Key Set) do Supabase
   const JWKS = createRemoteJWKSet(
     new URL(`${supabaseUrl}/auth/v1/.well-known/jwks.json`)
-  );
+  )
 
   const authenticate = async (request: FastifyRequest, reply: FastifyReply) => {
-    const authHeader = request.headers.authorization;
+    const authHeader = request.headers.authorization
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return reply.status(401).send({ error: 'Unauthorized: Missing or invalid token' });
+    if (!authHeader?.startsWith('Bearer ')) {
+      return reply.status(401).send({ 
+        success: false, 
+        error: 'Missing or invalid authorization header' 
+      })
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(' ')[1]
 
     try {
       const { payload } = await jwtVerify(token, JWKS, {
         issuer: `${supabaseUrl}/auth/v1`,
         audience: 'authenticated',
-      });
+      })
 
-      // O 'sub' no JWT do Supabase é o ID do usuário (UID)
-      if (!payload.sub) {
-        throw new Error('Token payload missing sub claim');
+      if (!payload.sub || !payload.email) {
+        throw new Error('Invalid token payload')
       }
 
-      request.user = { id: payload.sub };
+      request.user = { 
+        id: payload.sub, 
+        email: payload.email as string 
+      }
     } catch (error) {
-      server.log.warn({ msg: 'Authentication failed', error: (error as Error).message });
-      return reply.status(401).send({ error: 'Unauthorized: Invalid token' });
+      server.log.warn('Authentication failed:', error)
+      return reply.status(401).send({ 
+        success: false, 
+        error: 'Invalid token' 
+      })
     }
-  };
+  }
 
-  server.decorate('authenticate', authenticate);
-});
-
-export default authPlugin;
+  server.decorate('authenticate', authenticate)
+})

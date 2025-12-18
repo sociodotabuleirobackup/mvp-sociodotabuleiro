@@ -1,0 +1,444 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Auth & Users
+model Profile {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  phone     String?
+  cpf       String?  @unique
+  role      UserRole @default(PLAYER)
+  isPremium Boolean  @default(false) @map("is_premium")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  termsAcceptances   TermsAcceptance[]
+  contracts          Contract[]
+  venues             Venue[]
+  sessions           Session[]
+  bookings           Booking[]
+  payments           Payment[]
+  subscriptions      Subscription[]
+  chatMessages       ChatMessage[]
+  notifications      Notification[]
+  reviews            Review[]
+  adventurePurchases AdventurePurchase[]
+  foodOrders         FoodOrder[]
+  userAchievements   UserAchievement[]
+  ledgerEntries      LedgerEntry[]
+
+  @@map("profiles")
+}
+
+model TermsAcceptance {
+  id          String   @id @default(cuid())
+  profileId   String   @map("profile_id")
+  version     String
+  acceptedAt  DateTime @default(now()) @map("accepted_at")
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, version])
+  @@map("terms_acceptances")
+}
+
+// Contracts & Legal
+model Contract {
+  id          String        @id @default(cuid())
+  profileId   String        @map("profile_id")
+  zapSignId   String?       @unique @map("zap_sign_id")
+  type        ContractType
+  status      ContractStatus @default(PENDING)
+  signedAt    DateTime?     @map("signed_at")
+  expiresAt   DateTime?     @map("expires_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  profile Profile @relation(fields: [profileId], references: [id])
+
+  @@map("contracts")
+}
+
+// Venues & Tables
+model Venue {
+  id          String   @id @default(cuid())
+  ownerId     String   @map("owner_id")
+  name        String
+  description String?
+  address     String
+  city        String
+  state       String
+  zipCode     String   @map("zip_code")
+  latitude    Float?
+  longitude   Float?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner   Profile      @relation(fields: [ownerId], references: [id])
+  tables  VenueTable[]
+  sessions Session[]
+  foodMenuItems FoodMenuItem[]
+
+  @@map("venues")
+}
+
+model VenueTable {
+  id          String   @id @default(cuid())
+  venueId     String   @map("venue_id")
+  name        String
+  capacity    Int
+  pricePerHour Float   @map("price_per_hour")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  venue    Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  sessions Session[]
+
+  @@map("venue_tables")
+}
+
+// Sessions & Bookings
+model Session {
+  id          String        @id @default(cuid())
+  masterId    String        @map("master_id")
+  venueId     String?       @map("venue_id")
+  tableId     String?       @map("table_id")
+  title       String
+  description String?
+  gameSystem  String        @map("game_system")
+  maxPlayers  Int           @map("max_players")
+  price       Float
+  duration    Int           // minutes
+  status      SessionStatus @default(OPEN)
+  scheduledAt DateTime      @map("scheduled_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  master   Profile      @relation(fields: [masterId], references: [id])
+  venue    Venue?       @relation(fields: [venueId], references: [id])
+  table    VenueTable?  @relation(fields: [tableId], references: [id])
+  bookings Booking[]
+  reviews  Review[]
+  chats    Chat[]
+
+  @@map("sessions")
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  sessionId String        @map("session_id")
+  playerId  String        @map("player_id")
+  status    BookingStatus @default(PENDING)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  session Session @relation(fields: [sessionId], references: [id])
+  player  Profile @relation(fields: [playerId], references: [id])
+  payment Payment?
+
+  @@unique([sessionId, playerId])
+  @@map("bookings")
+}
+
+// Payments & Subscriptions
+model Payment {
+  id          String        @id @default(cuid())
+  profileId   String        @map("profile_id")
+  bookingId   String?       @unique @map("booking_id")
+  asaasId     String?       @unique @map("asaas_id")
+  amount      Float
+  status      PaymentStatus @default(PENDING)
+  method      PaymentMethod
+  paidAt      DateTime?     @map("paid_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  profile Profile  @relation(fields: [profileId], references: [id])
+  booking Booking? @relation(fields: [bookingId], references: [id])
+
+  @@map("payments")
+}
+
+model Subscription {
+  id          String             @id @default(cuid())
+  profileId   String             @map("profile_id")
+  plan        SubscriptionPlan
+  status      SubscriptionStatus @default(ACTIVE)
+  startsAt    DateTime           @map("starts_at")
+  expiresAt   DateTime           @map("expires_at")
+  createdAt   DateTime           @default(now()) @map("created_at")
+
+  profile Profile @relation(fields: [profileId], references: [id])
+
+  @@map("subscriptions")
+}
+
+// Chat & Notifications
+model Chat {
+  id        String   @id @default(cuid())
+  sessionId String   @map("session_id")
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session  Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@map("chats")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  chatId    String   @map("chat_id")
+  senderId  String   @map("sender_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  chat   Chat    @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender Profile @relation(fields: [senderId], references: [id])
+
+  @@map("chat_messages")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  profileId String           @map("profile_id")
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// Reviews
+model Review {
+  id        String   @id @default(cuid())
+  sessionId String   @map("session_id")
+  reviewerId String  @map("reviewer_id")
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session  Session @relation(fields: [sessionId], references: [id])
+  reviewer Profile @relation(fields: [reviewerId], references: [id])
+
+  @@unique([sessionId, reviewerId])
+  @@map("reviews")
+}
+
+// Adventures & Marketplace
+model Adventure {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  gameSystem  String   @map("game_system")
+  difficulty  Int      // 1-5
+  duration    Int      // minutes
+  coverImage  String?  @map("cover_image")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  purchases AdventurePurchase[]
+
+  @@map("adventures")
+}
+
+model AdventurePurchase {
+  id          String   @id @default(cuid())
+  adventureId String   @map("adventure_id")
+  profileId   String   @map("profile_id")
+  price       Float
+  purchasedAt DateTime @default(now()) @map("purchased_at")
+
+  adventure Adventure @relation(fields: [adventureId], references: [id])
+  profile   Profile   @relation(fields: [profileId], references: [id])
+
+  @@unique([adventureId, profileId])
+  @@map("adventure_purchases")
+}
+
+// Food & Orders
+model FoodMenuItem {
+  id          String   @id @default(cuid())
+  venueId     String   @map("venue_id")
+  name        String
+  description String?
+  price       Float
+  category    String
+  isAvailable Boolean  @default(true) @map("is_available")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  venue      Venue           @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  orderItems FoodOrderItem[]
+
+  @@map("food_menu_items")
+}
+
+model FoodOrder {
+  id        String          @id @default(cuid())
+  profileId String          @map("profile_id")
+  venueId   String          @map("venue_id")
+  status    FoodOrderStatus @default(PENDING)
+  total     Float
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  profile Profile         @relation(fields: [profileId], references: [id])
+  items   FoodOrderItem[]
+
+  @@map("food_orders")
+}
+
+model FoodOrderItem {
+  id         String @id @default(cuid())
+  orderId    String @map("order_id")
+  menuItemId String @map("menu_item_id")
+  quantity   Int
+  price      Float
+
+  order    FoodOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem FoodMenuItem @relation(fields: [menuItemId], references: [id])
+
+  @@map("food_order_items")
+}
+
+// Achievements & Gamification
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  icon        String?
+  points      Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  profileId     String   @map("profile_id")
+  achievementId String   @map("achievement_id")
+  unlockedAt    DateTime @default(now()) @map("unlocked_at")
+
+  profile     Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id])
+
+  @@unique([profileId, achievementId])
+  @@map("user_achievements")
+}
+
+// Digital Wallet
+model LedgerEntry {
+  id          String            @id @default(cuid())
+  profileId   String            @map("profile_id")
+  type        LedgerEntryType
+  amount      Float
+  description String
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  profile Profile @relation(fields: [profileId], references: [id])
+
+  @@map("ledger_entries")
+}
+
+// Enums
+enum UserRole {
+  PLAYER
+  MASTER
+  VENUE_OWNER
+  ADMIN
+}
+
+enum ContractType {
+  MASTER_AGREEMENT
+  VENUE_PARTNERSHIP
+  PREMIUM_SUBSCRIPTION
+}
+
+enum ContractStatus {
+  PENDING
+  SIGNED
+  EXPIRED
+  CANCELLED
+}
+
+enum SessionStatus {
+  OPEN
+  FULL
+  CANCELLED
+  COMPLETED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  PIX
+  BANK_SLIP
+}
+
+enum SubscriptionPlan {
+  BASIC
+  PREMIUM
+  MASTER
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum NotificationType {
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  SESSION_REMINDER
+  PAYMENT_RECEIVED
+  NEW_MESSAGE
+  ACHIEVEMENT_UNLOCKED
+}
+
+enum FoodOrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum LedgerEntryType {
+  CREDIT
+  DEBIT
+  REFUND
+  COMMISSION
+}

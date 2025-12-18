@@ -1,8 +1,23 @@
-
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance } from 'fastify'
 
 export async function healthRoutes(app: FastifyInstance) {
   app.get('/healthz', async () => {
-    return { status: 'ok', timestamp: new Date().toISOString() };
-  });
+    try {
+      await app.prisma.$queryRaw`SELECT 1`
+      return { 
+        success: true, 
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        database: 'connected'
+      }
+    } catch (error) {
+      app.log.error('Health check failed:', error)
+      return { 
+        success: false, 
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+        database: 'disconnected'
+      }
+    }
+  })
 }
