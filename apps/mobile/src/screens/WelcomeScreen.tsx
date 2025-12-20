@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { UserRole } from '@socio-do-tabuleiro/shared';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -17,6 +17,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <Image 
+        source={require('../../assets/logo.png')} 
+        style={styles.logo}
+        resizeMode="contain"
+      />
       <Text style={styles.title}>Sócio do Tabuleiro</Text>
       <Text style={styles.subtitle}>Marketplace para RPG</Text>
 
@@ -53,6 +58,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
   },
   title: {
     fontSize: 32,
