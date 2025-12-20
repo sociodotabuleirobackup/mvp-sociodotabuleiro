@@ -45,6 +45,31 @@ Optional:
 - **Backend**: Fastify with Prisma, rate limiting, and CORS
 - **Database**: Supabase PostgreSQL with comprehensive schema for users, sessions, bookings, payments, chat, and more
 - **Auth**: Supabase JWT authentication
+- **Payments**: Stripe Connect for split payments with document verification
+
+## Stripe Connect Integration
+
+### Split Payment Configuration
+| Transaction Type | Platform Fee | Destination |
+|-----------------|--------------|-------------|
+| Table Reservation | 10% | 90% Store |
+| RPG Session | 15% | 85% Master |
+| Food Order | 5% | 95% Store |
+
+### API Endpoints
+- `POST /api/stripe/connect/create-account` - Create Stripe Connect account
+- `GET /api/stripe/connect/status` - Check account verification status
+- `GET /api/stripe/connect/dashboard` - Access Stripe Express dashboard
+- `POST /api/stripe/create-payment` - Create split payment
+- `GET /api/stripe/balance` - Get connected account balance
+- `POST /api/stripe/webhook` - Stripe webhook handler
+- `GET /api/stripe/split-configs` - Get split payment configurations
+
+### User Fields (Prisma Schema)
+- `stripeCustomerId` - Stripe customer ID
+- `stripeConnectAccountId` - Stripe Connect account ID
+- `stripeVerificationStatus` - PENDING | PROCESSING | VERIFIED | FAILED | REQUIRES_ACTION
+- `stripeVerifiedAt` - Timestamp when account was verified
 
 ## Recent Changes
 
@@ -54,3 +79,6 @@ Optional:
   - Connected to Supabase PostgreSQL (us-west-2 region)
   - Created set-supabase-env.sh script for proper connection string handling
   - Seeded database with demo data
+  - Integrated Stripe Connect with Express accounts
+  - Implemented split payments with configurable percentages
+  - Added webhook handlers for account verification and payments

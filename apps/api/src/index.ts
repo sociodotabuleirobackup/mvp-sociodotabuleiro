@@ -7,6 +7,7 @@ import { healthRoutes } from './routes/health';
 import { sessionRoutes } from './routes/sessions';
 import { userRoutes } from './routes/users';
 import { bookingRoutes } from './routes/bookings';
+import { stripeConnectRoutes } from './routes/stripe-connect';
 
 const server = Fastify({
   logger: {
@@ -20,6 +21,23 @@ const server = Fastify({
         : undefined,
   },
 });
+
+server.addContentTypeParser(
+  'application/json',
+  { parseAs: 'buffer' },
+  (req, body, done) => {
+    if (req.url === '/api/stripe/webhook') {
+      done(null, body);
+    } else {
+      try {
+        const json = JSON.parse(body.toString());
+        done(null, json);
+      } catch (err: any) {
+        done(err, undefined);
+      }
+    }
+  }
+);
 
 async function start() {
   try {
@@ -41,6 +59,7 @@ async function start() {
     await server.register(sessionRoutes, { prefix: '/api' });
     await server.register(userRoutes, { prefix: '/api' });
     await server.register(bookingRoutes, { prefix: '/api' });
+    await server.register(stripeConnectRoutes, { prefix: '/api' });
 
     // Start server
     const port = Number(process.env.PORT) || 3001;
