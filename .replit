@@ -21,13 +21,13 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm dev"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./scripts/set-supabase-env.sh pnpm dev"
+waitForPort = 5000
 
 [[ports]]
 localPort = 3001
@@ -39,6 +39,13 @@ localPort = 5000
 externalPort = 80
 
 [deployment]
-deploymentTarget = "cloudrun"
-run = ["node", "apps/api/dist/index.js"]
-build = ["pnpm", "build"]
+deploymentTarget = "autoscale"
+run = ["./scripts/set-supabase-env.sh", "node", "apps/api/dist/index.js"]
+build = ["./scripts/set-supabase-env.sh", "pnpm", "build"]
+
+[userenv]
+
+[userenv.shared]
+SUPABASE_REGION = "us-west-2"
+
+[userenv.development]

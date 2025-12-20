@@ -13,40 +13,44 @@ This is a pnpm monorepo containing:
 
 ## Running the Application
 
-The main workflow runs both the frontend and backend concurrently:
-```bash
-pnpm dev
-```
+The main workflow runs both the frontend and backend concurrently using `./scripts/set-supabase-env.sh pnpm dev` which sets up the Supabase database connection.
 
 - Frontend: http://localhost:5000
 - Backend API: http://localhost:3001
 
 ## Database
 
-PostgreSQL database managed via Prisma ORM.
+Using Supabase PostgreSQL database with Prisma ORM.
 
-Common commands:
-- `pnpm db:generate` - Generate Prisma client
-- `pnpm db:push` - Push schema to database
-- `pnpm db:migrate` - Run migrations
-- `pnpm db:studio` - Open Prisma Studio
+Common commands (use the set-supabase-env.sh wrapper):
+- `./scripts/set-supabase-env.sh pnpm db:generate` - Generate Prisma client
+- `./scripts/set-supabase-env.sh pnpm db:push` - Push schema to database  
+- `./scripts/set-supabase-env.sh pnpm db:migrate` - Run migrations
+- `./scripts/set-supabase-env.sh pnpm db:seed` - Seed demo data
 
-## Environment Variables
+## Environment Variables / Secrets
+
+Required for Supabase:
+- `SUPABASE_URL` - Supabase project URL (for authentication)
+- `SUPABASE_PG_PASS` - Supabase PostgreSQL password
+- `SUPABASE_PROJECT_REF` - Supabase project reference ID
 
 Optional:
-- `SUPABASE_URL` - For authentication (if not set, auth is disabled)
+- `SUPABASE_REGION` - AWS region (default: us-west-2)
 - `GEMINI_API_KEY` - For AI features
 
 ## Architecture
 
 - **Frontend**: React 18 with Vite, using Tailwind CSS
 - **Backend**: Fastify with Prisma, rate limiting, and CORS
-- **Database**: PostgreSQL with comprehensive schema for users, sessions, bookings, payments, chat, and more
+- **Database**: Supabase PostgreSQL with comprehensive schema for users, sessions, bookings, payments, chat, and more
+- **Auth**: Supabase JWT authentication
 
 ## Recent Changes
 
 - December 2024: Initial Replit environment setup
   - Configured Vite to use port 5000 with allowedHosts: true
-  - Configured API to use localhost
-  - Made Supabase authentication optional
-  - Set up PostgreSQL database with Prisma
+  - Configured API to use localhost on port 3001
+  - Connected to Supabase PostgreSQL (us-west-2 region)
+  - Created set-supabase-env.sh script for proper connection string handling
+  - Seeded database with demo data
