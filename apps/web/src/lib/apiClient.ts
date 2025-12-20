@@ -43,14 +43,21 @@ async function apiRequest<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
-  const headers: HeadersInit = {
+  const headers = new Headers({
     'Content-Type': 'application/json',
-    ...options.headers,
-  };
+  });
+
+  // Merge any additional headers from options
+  if (options.headers) {
+    const optHeaders = new Headers(options.headers);
+    optHeaders.forEach((value, key) => {
+      headers.set(key, value);
+    });
+  }
 
   // Add auth token if available
   if (authToken) {
-    headers.Authorization = `Bearer ${authToken}`;
+    headers.set('Authorization', `Bearer ${authToken}`);
   }
 
   try {
