@@ -52,5 +52,6 @@ build = ["./scripts/set-supabase-env.sh", "pnpm", "build"]
 
 [userenv.shared]
 SUPABASE_REGION = "us-west-2"
+VITE_SUPABASE_URL = "https://amgdgkahcimfdrpgxvkx.supabase.co"
 
 [userenv.development]
