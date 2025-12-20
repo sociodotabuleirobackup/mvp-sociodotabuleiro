@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '@socio-do-tabuleiro/shared';
 
@@ -16,6 +16,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Image 
+          source={require('../../assets/logo.png')} 
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.headerTitle}>Sócio do Tabuleiro</Text>
+      </View>
       <Text style={styles.welcome}>Bem-vindo, {user.name}!</Text>
       <Text style={styles.role}>
         {user.role === UserRole.MASTER && 'Mestre de RPG'}
@@ -49,6 +57,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#050505',
     padding: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  logo: {
+    width: 40,
+    height: 40,
+    marginRight: 10,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ffffff',
   },
   welcome: {
     fontSize: 24,
