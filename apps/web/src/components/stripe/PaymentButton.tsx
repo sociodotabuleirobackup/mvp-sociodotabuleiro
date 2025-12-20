@@ -13,11 +13,6 @@ interface PaymentButtonProps {
   children?: React.ReactNode;
 }
 
-const transactionLabels: Record<string, string> = {
-  TABLE_RESERVATION: 'Reserva de Mesa',
-  RPG_SESSION: 'Sessão de RPG',
-  FOOD_ORDER: 'Pedido de Comida',
-};
 
 export const PaymentButton: React.FC<PaymentButtonProps> = ({
   amount,

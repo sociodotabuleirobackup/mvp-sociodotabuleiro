@@ -14,7 +14,7 @@ export const Profile: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    if (user && (user.role === 'MASTER' || user.role === 'STORE')) {
+    if (user && (user.role === 'MASTER' || user.role === 'VENUE')) {
       loadStripeStatus();
     }
   }, [user]);
@@ -45,7 +45,7 @@ export const Profile: React.FC = () => {
 
   if (!user) return null;
 
-  const canReceivePayments = user.role === 'MASTER' || user.role === 'STORE';
+  const canReceivePayments = user.role === 'MASTER' || user.role === 'VENUE';
 
   return (
     <div className="p-4 max-w-4xl mx-auto space-y-6">

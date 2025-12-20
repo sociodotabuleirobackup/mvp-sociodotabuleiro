@@ -3,10 +3,12 @@ import { User, UserRole } from '@socio-do-tabuleiro/shared';
 import { apiClient, setAuthToken, handleApiError } from '../../lib/apiClient';
 
 // Mock JWT tokens for development
-const MOCK_TOKENS = {
+const MOCK_TOKENS: Record<UserRole, string> = {
+  [UserRole.GUEST]: 'mock-guest-token',
   [UserRole.MASTER]: 'mock-master-token',
   [UserRole.PLAYER]: 'mock-player-token',
   [UserRole.VENUE]: 'mock-venue-token',
+  [UserRole.ADMIN]: 'mock-admin-token',
 };
 
 export const useAuthApi = () => {
