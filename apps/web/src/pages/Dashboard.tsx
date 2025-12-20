@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../store';
-import { UserRole } from '@socio-do-tabuleiro/shared';
+import { UserRole, SessionStatus, isSessionActive, isSessionCompleted, isStoreRole } from '@socio-do-tabuleiro/shared';
 // Changed react-router-dom to react-router to fix missing export errors
 import { Link } from 'react-router';
 import { useSessions } from '../features/sessions/useSessions';
@@ -15,7 +15,7 @@ export const Dashboard: React.FC = () => {
     <div className="p-4 max-w-7xl mx-auto">
       {user.role === UserRole.MASTER && <MasterDashboard />}
       {user.role === UserRole.PLAYER && <PlayerDashboard />}
-      {user.role === UserRole.VENUE && <VenueDashboard />}
+      {isStoreRole(user.role) && <VenueDashboard />}
     </div>
   );
 };
@@ -70,7 +70,7 @@ const MasterDashboard = () => {
     );
   }
 
-  const activeSessions = sessions.filter(s => s.status === 'published');
+  const activeSessions = sessions.filter(s => isSessionActive(s.status));
   const totalPlayers = sessions.reduce(
     (acc, session) => acc + (session.playersCurrent || 0),
     0
@@ -80,8 +80,8 @@ const MasterDashboard = () => {
     0
   );
   const nextSession = sessions
-    .filter(s => new Date(s.date) > new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+    .filter(s => new Date(s.date || s.scheduledAt || '') > new Date())
+    .sort((a, b) => new Date(a.date || a.scheduledAt || '').getTime() - new Date(b.date || b.scheduledAt || '').getTime())[0];
 
   return (
     <div className="space-y-6">
@@ -102,7 +102,7 @@ const MasterDashboard = () => {
           label="Próxima Sessão"
           value={
             nextSession
-              ? new Date(nextSession.date).toLocaleDateString('pt-BR', {
+              ? new Date(nextSession.date || nextSession.scheduledAt || '').toLocaleDateString('pt-BR', {
                   day: '2-digit',
                   month: 'short',
                 })
@@ -160,7 +160,7 @@ const MasterDashboard = () => {
                 id={session.id}
                 title={session.title}
                 system={session.system}
-                date={new Date(session.date).toLocaleDateString('pt-BR', {
+                date={new Date(session.date || session.scheduledAt || '').toLocaleDateString('pt-BR', {
                   weekday: 'short',
                   hour: '2-digit',
                   minute: '2-digit',
@@ -181,7 +181,7 @@ const PlayerDashboard = () => {
   const { bookings, loading: bookingsLoading } = useBookings();
   const { sessions, loading: sessionsLoading } = useSessions({
     autoFetch: true,
-    filters: { status: 'published' },
+    filters: { status: SessionStatus.OPEN },
   });
 
   const nextBooking = bookings
@@ -438,13 +438,13 @@ const SessionCard = ({
     >
       <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
       <span
-        className={`absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded ${status === 'published' ? 'bg-green-500 text-black' : status === 'completed' ? 'bg-blue-500 text-white' : 'bg-yellow-500 text-black'}`}
+        className={`absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded ${isSessionActive(status) ? 'bg-green-500 text-black' : isSessionCompleted(status) ? 'bg-blue-500 text-white' : 'bg-yellow-500 text-black'}`}
       >
-        {status === 'published'
+        {isSessionActive(status)
           ? 'ATIVA'
-          : status === 'completed'
+          : isSessionCompleted(status)
             ? 'FINALIZADA'
-            : status.toUpperCase()}
+            : String(status).toUpperCase()}
       </span>
     </div>
     <div className="p-4">

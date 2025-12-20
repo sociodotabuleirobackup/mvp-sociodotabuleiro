@@ -6,6 +6,9 @@ import {
   UserRole,
   BookingStatus,
   GeoCoordinates,
+  isSessionActive,
+  isSessionCompleted,
+  isSessionCancelled,
 } from '@socio-do-tabuleiro/shared';
 import { asaas } from '../services/asaas';
 import { maps } from '../services/maps';
@@ -84,7 +87,7 @@ export const SessionDetails: React.FC = () => {
     try {
       setActionLoading(true);
       await createBooking(session.id);
-      setBookingStatus(BookingStatus.PENDING_PAYMENT);
+      setBookingStatus(BookingStatus.PENDING);
     } catch (error) {
       alert(
         'Erro ao fazer reserva: ' +
@@ -105,7 +108,7 @@ export const SessionDetails: React.FC = () => {
       const pendingBooking = bookings.find(
         b =>
           b.sessionId === session.id &&
-          b.status === BookingStatus.PENDING_PAYMENT
+          b.status === BookingStatus.PENDING
       );
       if (pendingBooking) {
         await confirmBooking(pendingBooking.id);
@@ -220,15 +223,15 @@ export const SessionDetails: React.FC = () => {
         />
         <div className="absolute top-4 right-4 z-20">
           <span
-            className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg ${session.status === 'published' ? 'bg-green-500 text-black' : session.status === 'canceled' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'}`}
+            className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg ${isSessionActive(session.status) ? 'bg-green-500 text-black' : isSessionCancelled(session.status) ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'}`}
           >
-            {session.status === 'published'
+            {isSessionActive(session.status)
               ? 'ATIVA'
-              : session.status === 'completed'
+              : isSessionCompleted(session.status)
                 ? 'FINALIZADA'
-                : session.status === 'canceled'
+                : isSessionCancelled(session.status)
                   ? 'CANCELADA'
-                  : session.status.toUpperCase()}
+                  : String(session.status).toUpperCase()}
           </span>
         </div>
         <button
@@ -245,7 +248,7 @@ export const SessionDetails: React.FC = () => {
           <div className="flex-1 space-y-6">
             <div>
               <div className="flex gap-2 mb-2">
-                {session.tags.map(tag => (
+                {(session.tags || []).map(tag => (
                   <span
                     key={tag}
                     className="px-2 py-0.5 rounded bg-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider border border-primary/30"
@@ -278,7 +281,7 @@ export const SessionDetails: React.FC = () => {
                   <span className="material-symbols-outlined text-base">
                     calendar_month
                   </span>
-                  {new Date(session.date).toLocaleDateString('pt-BR', {
+                  {new Date(session.date || session.scheduledAt || '').toLocaleDateString('pt-BR', {
                     weekday: 'short',
                     day: '2-digit',
                     month: 'short',
@@ -308,7 +311,7 @@ export const SessionDetails: React.FC = () => {
                   Session Management
                 </h3>
                 <div className="flex gap-3">
-                  {session.status === 'published' && (
+                  {isSessionActive(session.status) && (
                     <button
                       onClick={handleCancelSession}
                       disabled={actionLoading}
@@ -317,7 +320,7 @@ export const SessionDetails: React.FC = () => {
                       {actionLoading ? 'Cancelando...' : 'Cancelar Sessão'}
                     </button>
                   )}
-                  {session.status === 'completed' && (
+                  {isSessionCompleted(session.status) && (
                     <span className="text-green-500 font-bold text-sm flex items-center gap-2">
                       <span className="material-symbols-outlined">
                         check_circle
@@ -325,7 +328,7 @@ export const SessionDetails: React.FC = () => {
                       Sessão Finalizada
                     </span>
                   )}
-                  {session.status === 'canceled' && (
+                  {isSessionCancelled(session.status) && (
                     <span className="text-red-500 font-bold text-sm flex items-center gap-2">
                       <span className="material-symbols-outlined">cancel</span>{' '}
                       Sessão Cancelada
@@ -411,7 +414,7 @@ export const SessionDetails: React.FC = () => {
                     <span className="material-symbols-outlined text-sm">
                       group
                     </span>
-                    {session.playersCurrent}/{session.playersMax}
+                    {session.playersCurrent || 0}/{session.playersMax || session.maxPlayers || 0}
                   </div>
                   <span className="text-[10px] text-green-400">
                     Spots available
@@ -439,7 +442,7 @@ export const SessionDetails: React.FC = () => {
                     Add to Calendar
                   </button>
                 </div>
-              ) : bookingStatus === BookingStatus.PENDING_PAYMENT ? (
+              ) : bookingStatus === BookingStatus.PENDING ? (
                 <div className="space-y-3">
                   <div className="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded-lg text-xs text-yellow-200">
                     Your spot is reserved for 15 minutes. Complete the payment
@@ -465,12 +468,12 @@ export const SessionDetails: React.FC = () => {
                   onClick={handleBook}
                   disabled={
                     actionLoading ||
-                    session.playersCurrent >= session.playersMax ||
-                    session.status !== 'published'
+                    (session.playersCurrent || 0) >= (session.playersMax || session.maxPlayers || 0) ||
+                    !isSessionActive(session.status)
                   }
                   className="w-full py-4 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold text-lg shadow-[0_0_20px_rgba(107,38,217,0.4)] transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {session.status !== 'published'
+                  {!isSessionActive(session.status)
                     ? 'Mesa Fechada'
                     : actionLoading
                       ? 'Reservando...'
