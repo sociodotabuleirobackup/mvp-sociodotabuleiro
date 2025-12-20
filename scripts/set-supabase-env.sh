@@ -26,4 +26,14 @@ REGION="${SUPABASE_REGION:-us-west-2}"
 export DATABASE_URL="postgresql://postgres.${PROJECT_REF}:${ENCODED_PASS}@aws-0-${REGION}.pooler.supabase.com:6543/postgres?pgbouncer=true"
 export DIRECT_URL="postgresql://postgres.${PROJECT_REF}:${ENCODED_PASS}@aws-0-${REGION}.pooler.supabase.com:5432/postgres"
 
+# Set Vite frontend environment variables for Supabase client
+# The anon key is public by design and safe to expose to the frontend
+export VITE_SUPABASE_URL="https://${PROJECT_REF}.supabase.co"
+
+if [ -z "$SUPABASE_ANON_KEY" ]; then
+  echo "Warning: SUPABASE_ANON_KEY not set. Frontend authentication will not work."
+else
+  export VITE_SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
+fi
+
 exec "$@"

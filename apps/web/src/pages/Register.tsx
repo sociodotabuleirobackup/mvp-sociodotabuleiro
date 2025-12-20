@@ -6,7 +6,8 @@ import { UserRole } from '@socio-do-tabuleiro/shared';
 export const Register: React.FC = () => {
   const { role } = useParams<{ role: UserRole }>();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { signUpWithEmail, loading, error } = useAuth();
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const [step, setStep] = useState(1);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -52,14 +53,19 @@ export const Register: React.FC = () => {
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (!termsAccepted) {
       alert('Você deve aceitar os termos de uso.');
       return;
     }
-    console.log('Registered:', formData);
-    login(role as UserRole);
-    navigate('/dashboard');
+    
+    try {
+      setLocalError(null);
+      await signUpWithEmail(formData.email, formData.password, formData.name);
+      navigate('/dashboard');
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : 'Registration failed');
+    }
   };
 
   const toggleSelection = (

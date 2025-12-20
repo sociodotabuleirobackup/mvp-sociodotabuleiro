@@ -1,35 +1,34 @@
-import { useState, useEffect } from 'react';
-import { User, UserRole } from '@socio-do-tabuleiro/shared';
+import { useState, useEffect, useCallback } from 'react';
+import { User } from '@socio-do-tabuleiro/shared';
 import { apiClient, setAuthToken, handleApiError } from '../../lib/apiClient';
-
-// Mock JWT tokens for development
-const MOCK_TOKENS: Record<UserRole, string> = {
-  [UserRole.GUEST]: 'mock-guest-token',
-  [UserRole.MASTER]: 'mock-master-token',
-  [UserRole.PLAYER]: 'mock-player-token',
-  [UserRole.VENUE]: 'mock-venue-token',
-  [UserRole.ADMIN]: 'mock-admin-token',
-};
+import { supabase } from '../../lib/supabase';
 
 export const useAuthApi = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize auth state from localStorage
+  const fetchUserData = useCallback(async (token: string) => {
+    try {
+      setAuthToken(token);
+      const userData = await apiClient.user.getMe();
+      setUser(userData);
+      return userData;
+    } catch (err) {
+      setAuthToken(null);
+      throw err;
+    }
+  }, []);
+
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-          setAuthToken(token);
-          const userData = await apiClient.user.getMe();
-          setUser(userData);
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.access_token) {
+          await fetchUserData(session.access_token);
         }
       } catch (err) {
-        // Token is invalid, clear it
-        localStorage.removeItem('auth_token');
-        setAuthToken(null);
         setError(handleApiError(err));
       } finally {
         setLoading(false);
@@ -37,35 +36,121 @@ export const useAuthApi = () => {
     };
 
     initAuth();
-  }, []);
 
-  const login = async (role: UserRole) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.access_token) {
+        try {
+          setLoading(true);
+          await fetchUserData(session.access_token);
+        } catch (err) {
+          setError(handleApiError(err));
+        } finally {
+          setLoading(false);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setAuthToken(null);
+      } else if (event === 'TOKEN_REFRESHED' && session?.access_token) {
+        setAuthToken(session.access_token);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchUserData]);
+
+  const loginWithEmail = async (email: string, password: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      // In development, use mock tokens
-      const token = MOCK_TOKENS[role];
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      setAuthToken(token);
-      localStorage.setItem('auth_token', token);
+      if (authError) {
+        throw new Error(authError.message);
+      }
 
-      // Fetch user data from API
-      const userData = await apiClient.user.getMe();
-      setUser(userData);
+      if (data.session?.access_token) {
+        await fetchUserData(data.session.access_token);
+      }
     } catch (err) {
       setError(handleApiError(err));
-      setAuthToken(null);
-      localStorage.removeItem('auth_token');
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setAuthToken(null);
-    localStorage.removeItem('auth_token');
+  const signUpWithEmail = async (email: string, password: string, name: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
+        },
+      });
+
+      if (authError) {
+        throw new Error(authError.message);
+      }
+
+      if (data.session?.access_token) {
+        await fetchUserData(data.session.access_token);
+      }
+
+      return data;
+    } catch (err) {
+      setError(handleApiError(err));
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (authError) {
+        throw new Error(authError.message);
+      }
+    } catch (err) {
+      setError(handleApiError(err));
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      setLoading(true);
+      await supabase.auth.signOut();
+      setUser(null);
+      setAuthToken(null);
+    } catch (err) {
+      setError(handleApiError(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateProfile = async (
@@ -104,14 +189,36 @@ export const useAuthApi = () => {
     }
   };
 
+  const refreshSession = async () => {
+    try {
+      const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError) {
+        throw new Error(refreshError.message);
+      }
+
+      if (session?.access_token) {
+        setAuthToken(session.access_token);
+      }
+
+      return session;
+    } catch (err) {
+      setError(handleApiError(err));
+      throw err;
+    }
+  };
+
   return {
     user,
     isAuthenticated: !!user,
     loading,
     error,
-    login,
+    loginWithEmail,
+    signUpWithEmail,
+    loginWithGoogle,
     logout,
     updateProfile,
     becomeMaster,
+    refreshSession,
   };
 };
