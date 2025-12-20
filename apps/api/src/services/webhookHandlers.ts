@@ -40,6 +40,11 @@ export class WebhookHandlers {
         case 'charge.refunded':
           await WebhookHandlers.handleRefundCreated(event);
           break;
+        case 'payout.created':
+        case 'payout.paid':
+        case 'payout.failed':
+          await WebhookHandlers.handlePayoutEvent(event);
+          break;
         default:
           console.log(`Unhandled event type: ${event.type}`);
       }
@@ -178,6 +183,67 @@ export class WebhookHandlers {
           },
         });
       }
+    }
+  }
+
+  static async handlePayoutEvent(event: Stripe.Event): Promise<void> {
+    const payout = event.data.object as Stripe.Payout;
+    const accountId = event.account;
+
+    if (!accountId) {
+      console.log('Payout event without account ID:', event.type);
+      return;
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { stripeConnectAccountId: accountId },
+    });
+
+    if (!user) {
+      console.log('No user found for payout account:', accountId);
+      return;
+    }
+
+    const formatCurrency = (amount: number, currency: string) => {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: currency.toUpperCase(),
+      }).format(amount / 100);
+    };
+
+    switch (event.type) {
+      case 'payout.created':
+        await prisma.notification.create({
+          data: {
+            userId: user.id,
+            title: 'Saque Iniciado',
+            message: `Um saque de ${formatCurrency(payout.amount, payout.currency)} foi iniciado para sua conta bancária.`,
+            type: 'SYSTEM',
+          },
+        });
+        break;
+
+      case 'payout.paid':
+        await prisma.notification.create({
+          data: {
+            userId: user.id,
+            title: 'Saque Concluído',
+            message: `O saque de ${formatCurrency(payout.amount, payout.currency)} foi depositado em sua conta bancária.`,
+            type: 'SYSTEM',
+          },
+        });
+        break;
+
+      case 'payout.failed':
+        await prisma.notification.create({
+          data: {
+            userId: user.id,
+            title: 'Saque Falhou',
+            message: `O saque de ${formatCurrency(payout.amount, payout.currency)} falhou. Verifique seus dados bancários.`,
+            type: 'SYSTEM',
+          },
+        });
+        break;
     }
   }
 }
