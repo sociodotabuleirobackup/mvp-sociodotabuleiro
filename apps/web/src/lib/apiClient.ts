@@ -239,6 +239,56 @@ export const apiClient = {
   },
 };
 
+// Stripe Connect types
+interface StripeConnectStatus {
+  success: boolean;
+  hasAccount: boolean;
+  accountId?: string;
+  verified?: boolean;
+  status?: 'pending' | 'processing' | 'verified' | 'failed' | 'requires_action';
+  requirements?: string[];
+  chargesEnabled?: boolean;
+  payoutsEnabled?: boolean;
+}
+
+interface CreateConnectAccountResponse {
+  success: boolean;
+  accountId: string;
+  onboardingUrl: string;
+  message?: string;
+}
+
+interface StripeBalance {
+  success: boolean;
+  balance: {
+    available: number;
+    pending: number;
+  };
+  recentTransfers: Array<{
+    id: string;
+    amount: number;
+    currency: string;
+    created: string;
+  }>;
+}
+
+interface SplitConfig {
+  name: string;
+  platformFee: number;
+  destinationShare: number;
+}
+
+interface CreatePaymentResponse {
+  success: boolean;
+  sessionId: string;
+  checkoutUrl: string;
+  split: {
+    total: number;
+    platformFee: number;
+    destinationAmount: number;
+  };
+}
+
 // Utility function to handle API errors in components
 export const handleApiError = (error: unknown): string => {
   if (error instanceof ApiError) {
@@ -250,4 +300,56 @@ export const handleApiError = (error: unknown): string => {
   }
 
   return error instanceof Error ? error.message : 'Unknown error occurred';
+};
+
+// Stripe Connect API
+export const stripeApi = {
+  async getConnectStatus(): Promise<StripeConnectStatus> {
+    return apiRequest<StripeConnectStatus>('/api/stripe/connect/status');
+  },
+
+  async createConnectAccount(data: {
+    businessType: 'individual' | 'company';
+    firstName?: string;
+    lastName?: string;
+    companyName?: string;
+    cpf?: string;
+    cnpj?: string;
+  }): Promise<CreateConnectAccountResponse> {
+    return apiRequest<CreateConnectAccountResponse>('/api/stripe/connect/create-account', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async getRefreshOnboardingUrl(): Promise<{ success: boolean; url: string }> {
+    return apiRequest<{ success: boolean; url: string }>('/api/stripe/connect/refresh-link');
+  },
+
+  async getDashboardUrl(): Promise<{ success: boolean; url: string }> {
+    return apiRequest<{ success: boolean; url: string }>('/api/stripe/connect/dashboard');
+  },
+
+  async getBalance(): Promise<StripeBalance> {
+    return apiRequest<StripeBalance>('/api/stripe/balance');
+  },
+
+  async getSplitConfigs(): Promise<{ success: boolean; configs: Record<string, SplitConfig> }> {
+    return apiRequest<{ success: boolean; configs: Record<string, SplitConfig> }>('/api/stripe/split-configs');
+  },
+
+  async createPayment(data: {
+    amount: number;
+    transactionType: 'TABLE_RESERVATION' | 'RPG_SESSION' | 'FOOD_ORDER';
+    destinationUserId: string;
+    productName: string;
+    productDescription?: string;
+    bookingId?: string;
+    foodOrderId?: string;
+  }): Promise<CreatePaymentResponse> {
+    return apiRequest<CreatePaymentResponse>('/api/stripe/create-payment', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
