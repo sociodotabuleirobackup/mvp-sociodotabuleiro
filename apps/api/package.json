@@ -18,8 +18,10 @@
     "@socio-do-tabuleiro/shared": "workspace:*",
     "fastify": "^4.26.2",
     "fastify-plugin": "^4.5.1",
+    "fastify-raw-body": "^5.0.0",
     "jose": "^5.2.3",
     "pino": "^8.19.0",
+    "stripe": "^20.1.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
