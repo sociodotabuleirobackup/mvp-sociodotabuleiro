@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { ChatThread, ChatMessage } from '@socio-do-tabuleiro/shared';
+import { ChatThread, ChatMessage, MessageType } from '@socio-do-tabuleiro/shared';
 
-// Mock Data
+const CURRENT_USER_ID = 'me';
+const OTHER_USER_ID = 'other';
+const CHAT_ID = 'chat-1';
+
 const THREADS: ChatThread[] = [
   {
     id: '1',
@@ -24,15 +27,19 @@ const THREADS: ChatThread[] = [
 const MESSAGES: ChatMessage[] = [
   {
     id: '1',
-    senderId: 'other',
-    text: 'Olá! Tudo certo para a sessão de hoje?',
-    timestamp: '10:28',
+    content: 'Olá! Tudo certo para a sessão de hoje?',
+    type: MessageType.TEXT,
+    userId: OTHER_USER_ID,
+    chatId: CHAT_ID,
+    createdAt: new Date().toISOString(),
   },
   {
     id: '2',
-    senderId: 'other',
-    text: 'Podemos começar às 19h?',
-    timestamp: '10:30',
+    content: 'Podemos começar às 19h?',
+    type: MessageType.TEXT,
+    userId: OTHER_USER_ID,
+    chatId: CHAT_ID,
+    createdAt: new Date().toISOString(),
   },
 ];
 
@@ -49,12 +56,11 @@ export const Chat: React.FC = () => {
 
     const msg: ChatMessage = {
       id: Date.now().toString(),
-      senderId: 'me',
-      text: newMessage,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      content: newMessage,
+      type: MessageType.TEXT,
+      userId: CURRENT_USER_ID,
+      chatId: CHAT_ID,
+      createdAt: new Date().toISOString(),
     };
 
     setMessages([...messages, msg]);
@@ -149,23 +155,30 @@ export const Chat: React.FC = () => {
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map(msg => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.senderId === 'me' ? 'justify-end' : 'justify-start'}`}
-                >
+              {messages.map(msg => {
+                const isMe = msg.userId === CURRENT_USER_ID;
+                const displayTime = new Date(msg.createdAt).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+                return (
                   <div
-                    className={`max-w-[70%] p-3 rounded-2xl text-sm ${msg.senderId === 'me' ? 'bg-primary text-white rounded-tr-none' : 'bg-white/10 text-gray-200 rounded-tl-none'}`}
+                    key={msg.id}
+                    className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                   >
-                    <p>{msg.text}</p>
-                    <span
-                      className={`text-[10px] block mt-1 text-right ${msg.senderId === 'me' ? 'text-white/60' : 'text-gray-500'}`}
+                    <div
+                      className={`max-w-[70%] p-3 rounded-2xl text-sm ${isMe ? 'bg-primary text-white rounded-tr-none' : 'bg-white/10 text-gray-200 rounded-tl-none'}`}
                     >
-                      {msg.timestamp}
-                    </span>
+                      <p>{msg.content}</p>
+                      <span
+                        className={`text-[10px] block mt-1 text-right ${isMe ? 'text-white/60' : 'text-gray-500'}`}
+                      >
+                        {displayTime}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Input Area */}
