@@ -1,6 +1,6 @@
 [[ports]]
 localPort = 3000
-externalPort = 4200
+externalPort = 3002
 
 [[ports]]
 localPort = 3001
