@@ -34,9 +34,9 @@ interface CreatePaymentBody {
 }
 
 export async function stripeConnectRoutes(server: FastifyInstance) {
-  server.post('/stripe/connect/create-account', {
+  server.post<{ Body: CreateAccountBody }>('/stripe/connect/create-account', {
     preHandler: [server.authenticate],
-  }, async (request: FastifyRequest<{ Body: CreateAccountBody }>, reply: FastifyReply) => {
+  }, async (request, reply) => {
     try {
       const user = request.user;
       const body = request.body;
@@ -229,9 +229,9 @@ export async function stripeConnectRoutes(server: FastifyInstance) {
     });
   });
 
-  server.post('/stripe/create-payment', {
+  server.post<{ Body: CreatePaymentBody }>('/stripe/create-payment', {
     preHandler: [server.authenticate],
-  }, async (request: FastifyRequest<{ Body: CreatePaymentBody }>, reply: FastifyReply) => {
+  }, async (request, reply) => {
     try {
       const { amount, transactionType, destinationUserId, productName, productDescription, bookingId, foodOrderId } = request.body;
 
