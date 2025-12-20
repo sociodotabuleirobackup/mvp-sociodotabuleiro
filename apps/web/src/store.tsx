@@ -1,17 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   User,
-  UserRole,
   Notification,
   ContractStatus,
+  NotificationType,
 } from '@socio-do-tabuleiro/shared';
 import { useAuthApi } from './features/auth/useAuth';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (role: UserRole) => Promise<void>;
-  logout: () => void;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, name: string) => Promise<any>;
+  loginWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
   loading: boolean;
   notifications: Notification[];
   markAsRead: (id: string) => void;
@@ -20,6 +22,7 @@ interface AuthContextType {
     data: Partial<Pick<User, 'name' | 'avatarUrl'>>
   ) => Promise<User>;
   becomeMaster: (bio: string) => Promise<User>;
+  refreshSession: () => Promise<any>;
   error: string | null;
 }
 
@@ -33,13 +36,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (authApi.user) {
-      // Mock Notifications - in a real app, these would come from the API
       setNotifications([
         {
           id: '1',
           title: 'Reserva Confirmada',
           message: 'Sua vaga na mesa "A Maldição de Strahd" foi garantida!',
-          type: 'BOOKING',
+          type: NotificationType.BOOKING_CONFIRMED,
+          isRead: false,
+          userId: authApi.user.id,
+          createdAt: new Date().toISOString(),
           read: false,
           date: '10 min atrás',
           actionLink: '/sessions/1',
@@ -48,7 +53,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           id: '2',
           title: 'Nova Mensagem',
           message: 'Mestre Alex: Lembrem de atualizar as fichas...',
-          type: 'CHAT',
+          type: NotificationType.CHAT_MESSAGE,
+          isRead: false,
+          userId: authApi.user.id,
+          createdAt: new Date().toISOString(),
           read: false,
           date: '1h atrás',
           actionLink: '/chat',
@@ -66,8 +74,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const updateContractStatus = (status: ContractStatus) => {
-    // This would typically update via API, but for now we'll keep it local
-    // In a real implementation, this would call an API endpoint
     console.log('Contract status update:', status);
   };
 
@@ -76,7 +82,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         user: authApi.user,
         isAuthenticated: authApi.isAuthenticated,
-        login: authApi.login,
+        loginWithEmail: authApi.loginWithEmail,
+        signUpWithEmail: authApi.signUpWithEmail,
+        loginWithGoogle: authApi.loginWithGoogle,
         logout: authApi.logout,
         loading: authApi.loading,
         error: authApi.error,
@@ -85,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         updateContractStatus,
         updateProfile: authApi.updateProfile,
         becomeMaster: authApi.becomeMaster,
+        refreshSession: authApi.refreshSession,
       }}
     >
       {children}

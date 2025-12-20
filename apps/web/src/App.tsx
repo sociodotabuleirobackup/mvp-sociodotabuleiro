@@ -19,6 +19,7 @@ import { Profile } from './pages/Profile.tsx';
 import { Chat } from './pages/Chat.tsx';
 import { Notifications } from './pages/Notifications.tsx';
 import { Terms, Privacy, Support } from './pages/StaticPages.tsx';
+import { AuthCallback } from './pages/AuthCallback.tsx';
 import { Logo } from './components/Logo.tsx';
 
 // Layout Component
@@ -166,6 +167,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Welcome />} />
           <Route path="/register/:role" element={<Register />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
           <Route
             path="/dashboard"

@@ -235,6 +235,14 @@ export async function stripeConnectRoutes(server: FastifyInstance) {
     try {
       const { amount, transactionType, destinationUserId, productName, productDescription, bookingId, foodOrderId } = request.body;
 
+      const validTransactionTypes = ['TABLE_RESERVATION', 'RPG_SESSION', 'FOOD_ORDER'];
+      if (!validTransactionTypes.includes(transactionType)) {
+        return reply.status(400).send({
+          success: false,
+          error: `Tipo de transação inválido. Valores permitidos: ${validTransactionTypes.join(', ')}`,
+        });
+      }
+
       const destinationUser = await prisma.user.findUnique({
         where: { id: destinationUserId },
       });

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../store';
 import { StripeConnectOnboarding, StripeConnectDashboard } from '../components/stripe';
 import { stripeApi } from '../lib/apiClient';
+import { UserRole, isStoreRole } from '@socio-do-tabuleiro/shared';
 
 export const Profile: React.FC = () => {
   const { user } = useAuth();
@@ -14,7 +15,7 @@ export const Profile: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    if (user && (user.role === 'MASTER' || user.role === 'VENUE')) {
+    if (user && (user.role === UserRole.MASTER || isStoreRole(user.role))) {
       loadStripeStatus();
     }
   }, [user]);
@@ -45,7 +46,7 @@ export const Profile: React.FC = () => {
 
   if (!user) return null;
 
-  const canReceivePayments = user.role === 'MASTER' || user.role === 'VENUE';
+  const canReceivePayments = user.role === UserRole.MASTER || isStoreRole(user.role);
 
   return (
     <div className="p-4 max-w-4xl mx-auto space-y-6">
@@ -190,7 +191,7 @@ export const Profile: React.FC = () => {
                 <div className="flex-1">
                   <h3 className="font-bold mb-1">Configure sua conta para receber pagamentos</h3>
                   <p className="text-sm text-gray-400 mb-4">
-                    {user.role === 'MASTER' 
+                    {user.role === UserRole.MASTER 
                       ? 'Receba pagamentos diretamente por suas sessões de RPG. Você receberá 85% do valor, com 15% de taxa da plataforma.'
                       : 'Receba pagamentos por reservas de mesas (90%) e pedidos de comida (95%). A diferença é a taxa da plataforma.'}
                   </p>
