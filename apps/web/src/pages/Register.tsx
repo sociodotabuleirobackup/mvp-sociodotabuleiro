@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-// Changed react-router-dom to react-router to fix missing export errors
 import { useParams, useNavigate } from 'react-router';
 import { useAuth } from '../store';
 import { UserRole } from '@socio-do-tabuleiro/shared';
@@ -12,22 +11,22 @@ export const Register: React.FC = () => {
   const [step, setStep] = useState(1);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Generic Form Data
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    // Player
     genres: [] as string[],
-    // Master
     experienceYears: 0,
     systems: [] as string[],
     hourRate: 0,
-    // Venue
     venueName: '',
     address: '',
     amenities: [] as string[],
   });
+
+  const handleInputChange = (field: keyof typeof formData, value: string | number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const getRoleLabel = () => {
     switch (role) {
@@ -58,7 +57,6 @@ export const Register: React.FC = () => {
       alert('Você deve aceitar os termos de uso.');
       return;
     }
-    // Mock Registration
     console.log('Registered:', formData);
     login(role as UserRole);
     navigate('/dashboard');
@@ -70,15 +68,13 @@ export const Register: React.FC = () => {
   ) => {
     const list = formData[field];
     if (list.includes(value)) {
-      setFormData({ ...formData, [field]: list.filter(i => i !== value) });
+      setFormData(prev => ({ ...prev, [field]: list.filter(i => i !== value) }));
     } else {
-      setFormData({ ...formData, [field]: [...list, value] });
+      setFormData(prev => ({ ...prev, [field]: [...list, value] }));
     }
   };
 
-  // --- Step Components ---
-
-  const Step1Basic = () => (
+  const renderStep1Basic = () => (
     <div className="space-y-4 animate-fade-in">
       <h3 className="text-xl font-bold font-display text-white">
         Informações Básicas
@@ -90,7 +86,7 @@ export const Register: React.FC = () => {
         <input
           type="text"
           value={formData.name}
-          onChange={e => setFormData({ ...formData, name: e.target.value })}
+          onChange={e => handleInputChange('name', e.target.value)}
           className="w-full bg-surface border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none"
           placeholder="Ex: Aragorn Filho de Arathorn"
         />
@@ -102,7 +98,7 @@ export const Register: React.FC = () => {
         <input
           type="email"
           value={formData.email}
-          onChange={e => setFormData({ ...formData, email: e.target.value })}
+          onChange={e => handleInputChange('email', e.target.value)}
           className="w-full bg-surface border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none"
           placeholder="seu@email.com"
         />
@@ -114,7 +110,7 @@ export const Register: React.FC = () => {
         <input
           type="password"
           value={formData.password}
-          onChange={e => setFormData({ ...formData, password: e.target.value })}
+          onChange={e => handleInputChange('password', e.target.value)}
           className="w-full bg-surface border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none"
           placeholder="••••••••"
         />
@@ -122,7 +118,7 @@ export const Register: React.FC = () => {
     </div>
   );
 
-  const Step2Preferences = () => (
+  const renderStep2Preferences = () => (
     <div className="space-y-6 animate-fade-in">
       <h3 className="text-xl font-bold font-display text-white">
         Preferências de Jogo
@@ -141,6 +137,7 @@ export const Register: React.FC = () => {
           ].map(g => (
             <button
               key={g}
+              type="button"
               onClick={() => toggleSelection('genres', g)}
               className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${formData.genres.includes(g) ? 'bg-primary border-primary text-white' : 'bg-surface border-white/10 text-gray-400 hover:border-white/30'}`}
             >
@@ -150,7 +147,6 @@ export const Register: React.FC = () => {
         </div>
       </div>
 
-      {/* Terms for Player (Final Step) */}
       <div className="pt-4 border-t border-white/10">
         <label className="flex items-center gap-3 cursor-pointer group">
           <div
@@ -181,7 +177,7 @@ export const Register: React.FC = () => {
     </div>
   );
 
-  const Step2Master = () => (
+  const renderStep2Master = () => (
     <div className="space-y-6 animate-fade-in">
       <h3 className="text-xl font-bold font-display text-white">
         Perfil do Mestre
@@ -194,16 +190,11 @@ export const Register: React.FC = () => {
           <input
             type="number"
             value={formData.experienceYears}
-            onChange={e =>
-              setFormData({
-                ...formData,
-                experienceYears: parseInt(e.target.value),
-              })
-            }
+            onChange={e => handleInputChange('experienceYears', parseInt(e.target.value) || 0)}
             className="w-full bg-surface border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none"
           />
         </div>
-        <div>{/* Placeholder for future fields */}</div>
+        <div></div>
       </div>
       <div>
         <label className="block text-xs uppercase tracking-wider text-gray-500 mb-3">
@@ -219,6 +210,7 @@ export const Register: React.FC = () => {
           ].map(s => (
             <button
               key={s}
+              type="button"
               onClick={() => toggleSelection('systems', s)}
               className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${formData.systems.includes(s) ? 'bg-primary border-primary text-white' : 'bg-surface border-white/10 text-gray-400 hover:border-white/30'}`}
             >
@@ -230,7 +222,7 @@ export const Register: React.FC = () => {
     </div>
   );
 
-  const Step3Master = () => (
+  const renderStep3Master = () => (
     <div className="space-y-6 animate-fade-in">
       <h3 className="text-xl font-bold font-display text-white">
         Serviços Profissionais
@@ -250,9 +242,7 @@ export const Register: React.FC = () => {
           max="200"
           step="10"
           value={formData.hourRate}
-          onChange={e =>
-            setFormData({ ...formData, hourRate: parseInt(e.target.value) })
-          }
+          onChange={e => handleInputChange('hourRate', parseInt(e.target.value))}
           className="w-full accent-primary h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
         />
         <p className="text-xs text-gray-500 mt-2">
@@ -287,7 +277,7 @@ export const Register: React.FC = () => {
     </div>
   );
 
-  const Step2Venue = () => (
+  const renderStep2Venue = () => (
     <div className="space-y-4 animate-fade-in">
       <h3 className="text-xl font-bold font-display text-white">
         Detalhes do Estabelecimento
@@ -299,9 +289,7 @@ export const Register: React.FC = () => {
         <input
           type="text"
           value={formData.venueName}
-          onChange={e =>
-            setFormData({ ...formData, venueName: e.target.value })
-          }
+          onChange={e => handleInputChange('venueName', e.target.value)}
           className="w-full bg-surface border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none"
         />
       </div>
@@ -311,14 +299,14 @@ export const Register: React.FC = () => {
         </label>
         <textarea
           value={formData.address}
-          onChange={e => setFormData({ ...formData, address: e.target.value })}
+          onChange={e => handleInputChange('address', e.target.value)}
           className="w-full bg-surface border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none h-24"
         />
       </div>
     </div>
   );
 
-  const Step3Venue = () => (
+  const renderStep3Venue = () => (
     <div className="space-y-6 animate-fade-in">
       <h3 className="text-xl font-bold font-display text-white">
         Comodidades e Termos
@@ -338,6 +326,7 @@ export const Register: React.FC = () => {
           ].map(a => (
             <button
               key={a}
+              type="button"
               onClick={() => toggleSelection('amenities', a)}
               className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${formData.amenities.includes(a) ? 'bg-primary border-primary text-white' : 'bg-surface border-white/10 text-gray-400 hover:border-white/30'}`}
             >
@@ -378,7 +367,6 @@ export const Register: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative">
-      {/* Background */}
       <div className="absolute top-0 w-full h-2 bg-gradient-to-r from-primary to-accent opacity-20"></div>
 
       <div className="w-full max-w-lg z-10">
@@ -393,7 +381,6 @@ export const Register: React.FC = () => {
         </button>
 
         <div className="glass-panel p-8 rounded-2xl border border-white/10">
-          {/* Header */}
           <div className="mb-8">
             <div className="flex justify-between items-end mb-2">
               <h2 className="text-2xl font-display font-bold text-white">
@@ -403,7 +390,6 @@ export const Register: React.FC = () => {
                 Passo {step} de {getMaxSteps()}
               </span>
             </div>
-            {/* Progress Bar */}
             <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full bg-primary transition-all duration-500 ease-out"
@@ -412,20 +398,15 @@ export const Register: React.FC = () => {
             </div>
           </div>
 
-          {/* Form Steps */}
           <div className="min-h-[300px]">
-            {step === 1 && <Step1Basic />}
-
-            {role === UserRole.PLAYER && step === 2 && <Step2Preferences />}
-
-            {role === UserRole.MASTER && step === 2 && <Step2Master />}
-            {role === UserRole.MASTER && step === 3 && <Step3Master />}
-
-            {role === UserRole.VENUE && step === 2 && <Step2Venue />}
-            {role === UserRole.VENUE && step === 3 && <Step3Venue />}
+            {step === 1 && renderStep1Basic()}
+            {role === UserRole.PLAYER && step === 2 && renderStep2Preferences()}
+            {role === UserRole.MASTER && step === 2 && renderStep2Master()}
+            {role === UserRole.MASTER && step === 3 && renderStep3Master()}
+            {role === UserRole.VENUE && step === 2 && renderStep2Venue()}
+            {role === UserRole.VENUE && step === 3 && renderStep3Venue()}
           </div>
 
-          {/* Actions */}
           <div className="mt-8 flex justify-between items-center">
             <button
               onClick={() => setStep(step - 1)}
