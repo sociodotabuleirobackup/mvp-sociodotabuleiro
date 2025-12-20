@@ -1,6 +1,16 @@
 import { getStripeClient } from './stripeClient';
 import type Stripe from 'stripe';
 
+function getBaseUrl(): string {
+  if (process.env.REPLIT_DOMAINS) {
+    return `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`;
+  }
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  }
+  return process.env.BASE_URL || 'http://localhost:5000';
+}
+
 export interface ConnectAccountData {
   email: string;
   businessType: 'individual' | 'company';
@@ -65,7 +75,7 @@ export class StripeConnectService {
 
   async createAccountLink(accountId: string): Promise<Stripe.AccountLink> {
     const stripe = await getStripeClient();
-    const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+    const baseUrl = getBaseUrl();
 
     return stripe.accountLinks.create({
       account: accountId,

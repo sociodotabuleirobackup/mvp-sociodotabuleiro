@@ -4,6 +4,16 @@ import { splitPaymentService, TransactionType, SPLIT_CONFIGS } from '../services
 import { WebhookHandlers } from '../services/webhookHandlers';
 import { prisma } from '@socio-do-tabuleiro/database';
 
+function getBaseUrl(): string {
+  if (process.env.REPLIT_DOMAINS) {
+    return `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`;
+  }
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  }
+  return process.env.BASE_URL || 'http://localhost:5000';
+}
+
 interface CreateAccountBody {
   businessType: 'individual' | 'company';
   firstName?: string;
@@ -151,11 +161,11 @@ export async function stripeConnectRoutes(server: FastifyInstance) {
         });
       }
 
-      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+      const baseUrl = getBaseUrl();
       return reply.redirect(`${baseUrl}/profile?stripe_connected=true&verified=${status.verified}`);
     } catch (error: any) {
       server.log.error(error, 'Failed to process return from Stripe');
-      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+      const baseUrl = getBaseUrl();
       return reply.redirect(`${baseUrl}/profile?stripe_error=true`);
     }
   });
@@ -222,7 +232,7 @@ export async function stripeConnectRoutes(server: FastifyInstance) {
         where: { id: request.user.id },
       });
 
-      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+      const baseUrl = getBaseUrl();
 
       const result = await splitPaymentService.createCheckoutSession({
         amount: amount * 100,
