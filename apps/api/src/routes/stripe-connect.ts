@@ -136,6 +136,32 @@ export async function stripeConnectRoutes(server: FastifyInstance) {
     }
   });
 
+  server.get('/stripe/connect/refresh-link', {
+    preHandler: [server.authenticate],
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: request.user.id },
+      });
+
+      if (!user?.stripeConnectAccountId) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Conta Stripe Connect não encontrada',
+        });
+      }
+
+      const link = await stripeConnectService.createAccountLink(user.stripeConnectAccountId);
+      return reply.send({ success: true, url: link.url });
+    } catch (error: any) {
+      server.log.error(error, 'Failed to get refresh link');
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Erro ao obter link de onboarding',
+      });
+    }
+  });
+
   server.get('/stripe/connect/return', async (request: FastifyRequest<{ Querystring: { account_id: string } }>, reply: FastifyReply) => {
     try {
       const accountId = request.query.account_id;

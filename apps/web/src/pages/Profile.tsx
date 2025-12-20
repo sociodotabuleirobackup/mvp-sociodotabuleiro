@@ -1,11 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../store';
+import { StripeConnectOnboarding, StripeConnectDashboard } from '../components/stripe';
+import { stripeApi } from '../lib/apiClient';
 
 export const Profile: React.FC = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [stripeStatus, setStripeStatus] = useState<{
+    hasAccount: boolean;
+    verified: boolean;
+    status: string | null;
+  } | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (user && (user.role === 'MASTER' || user.role === 'STORE')) {
+      loadStripeStatus();
+    }
+  }, [user]);
+
+  const loadStripeStatus = async () => {
+    try {
+      const result = await stripeApi.getConnectStatus();
+      setStripeStatus({
+        hasAccount: result.hasAccount,
+        verified: result.verified || false,
+        status: result.status || null,
+      });
+    } catch (e) {
+      setStripeStatus({ hasAccount: false, verified: false, status: null });
+    }
+  };
+
+  const handleResumeOnboarding = async () => {
+    try {
+      const result = await stripeApi.getRefreshOnboardingUrl();
+      if (result.success && result.url) {
+        window.location.href = result.url;
+      }
+    } catch (e) {
+      console.error('Failed to get onboarding link:', e);
+    }
+  };
 
   if (!user) return null;
+
+  const canReceivePayments = user.role === 'MASTER' || user.role === 'STORE';
 
   return (
     <div className="p-4 max-w-4xl mx-auto space-y-6">
@@ -129,6 +169,44 @@ export const Profile: React.FC = () => {
           </section>
         </div>
       </div>
+
+      {canReceivePayments && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-bold font-display flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">payments</span>
+            Pagamentos e Recebimentos
+          </h2>
+
+          {stripeStatus?.hasAccount ? (
+            <StripeConnectDashboard onResumeOnboarding={handleResumeOnboarding} />
+          ) : showOnboarding ? (
+            <StripeConnectOnboarding onSuccess={loadStripeStatus} />
+          ) : (
+            <div className="glass-panel p-6 rounded-2xl">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0">
+                  <span className="material-symbols-outlined text-primary text-2xl">account_balance</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold mb-1">Configure sua conta para receber pagamentos</h3>
+                  <p className="text-sm text-gray-400 mb-4">
+                    {user.role === 'MASTER' 
+                      ? 'Receba pagamentos diretamente por suas sessões de RPG. Você receberá 85% do valor, com 15% de taxa da plataforma.'
+                      : 'Receba pagamentos por reservas de mesas (90%) e pedidos de comida (95%). A diferença é a taxa da plataforma.'}
+                  </p>
+                  <button
+                    onClick={() => setShowOnboarding(true)}
+                    className="px-6 py-2 bg-gradient-to-r from-primary to-accent rounded-lg font-bold text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">add</span>
+                    Configurar Recebimentos
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
