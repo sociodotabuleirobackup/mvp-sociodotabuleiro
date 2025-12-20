@@ -6,8 +6,8 @@ import { UserRole } from '@socio-do-tabuleiro/shared';
 export const Register: React.FC = () => {
   const { role } = useParams<{ role: UserRole }>();
   const navigate = useNavigate();
-  const { signUpWithEmail, loading, error } = useAuth();
-  const [localError, setLocalError] = useState<string | null>(null);
+  const { signUpWithEmail } = useAuth();
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
 
   const [step, setStep] = useState(1);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -60,11 +60,11 @@ export const Register: React.FC = () => {
     }
     
     try {
-      setLocalError(null);
+      setRegistrationError(null);
       await signUpWithEmail(formData.email, formData.password, formData.name);
       navigate('/dashboard');
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Registration failed');
+      setRegistrationError(err instanceof Error ? err.message : 'Registration failed');
     }
   };
 
@@ -403,6 +403,12 @@ export const Register: React.FC = () => {
               ></div>
             </div>
           </div>
+
+          {registrationError && (
+            <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">
+              {registrationError}
+            </div>
+          )}
 
           <div className="min-h-[300px]">
             {step === 1 && renderStep1Basic()}
