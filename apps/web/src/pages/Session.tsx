@@ -64,7 +64,7 @@ export const CreateSession: React.FC = () => {
               placeholder="Ex: A Tumba dos Horrores"
               value={formData.title}
               onChange={e =>
-                setFormData({ ...formData, title: e.target.value })
+                setFormData(prev => ({ ...prev, title: e.target.value }))
               }
             />
           </div>
@@ -132,14 +132,14 @@ export const CreateSession: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <button
               className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${formData.isOnline ? 'border-primary bg-primary/10 text-white' : 'border-border bg-surface text-gray-400'}`}
-              onClick={() => setFormData({ ...formData, isOnline: true })}
+              onClick={() => setFormData(prev => ({ ...prev, isOnline: true }))}
             >
               <span className="material-symbols-outlined text-3xl">wifi</span>
               <span className="font-bold">Online</span>
             </button>
             <button
               className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${!formData.isOnline ? 'border-primary bg-primary/10 text-white' : 'border-border bg-surface text-gray-400'}`}
-              onClick={() => setFormData({ ...formData, isOnline: false })}
+              onClick={() => setFormData(prev => ({ ...prev, isOnline: false }))}
             >
               <span className="material-symbols-outlined text-3xl">
                 storefront

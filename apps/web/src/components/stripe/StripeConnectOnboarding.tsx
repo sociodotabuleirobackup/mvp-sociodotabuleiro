@@ -103,7 +103,7 @@ export const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = (
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setFormData({ ...formData, businessType: 'individual' })}
+              onClick={() => setFormData(prev => ({ ...prev, businessType: 'individual' }))}
               className={`p-4 rounded-xl border transition-all ${
                 formData.businessType === 'individual'
                   ? 'border-primary bg-primary/10 text-white'
@@ -116,7 +116,7 @@ export const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = (
             </button>
             <button
               type="button"
-              onClick={() => setFormData({ ...formData, businessType: 'company' })}
+              onClick={() => setFormData(prev => ({ ...prev, businessType: 'company' }))}
               className={`p-4 rounded-xl border transition-all ${
                 formData.businessType === 'company'
                   ? 'border-primary bg-primary/10 text-white'
@@ -140,7 +140,7 @@ export const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = (
                 <input
                   type="text"
                   value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
                   className="w-full bg-surface/50 border border-white/10 rounded-lg p-3 focus:border-primary focus:outline-none transition-colors"
                   placeholder="Seu nome"
                   required
@@ -153,7 +153,7 @@ export const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = (
                 <input
                   type="text"
                   value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                   className="w-full bg-surface/50 border border-white/10 rounded-lg p-3 focus:border-primary focus:outline-none transition-colors"
                   placeholder="Seu sobrenome"
                   required
@@ -167,7 +167,7 @@ export const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = (
               <input
                 type="text"
                 value={formData.cpf}
-                onChange={(e) => setFormData({ ...formData, cpf: formatCPF(e.target.value) })}
+                onChange={(e) => setFormData(prev => ({ ...prev, cpf: formatCPF(e.target.value) }))}
                 className="w-full bg-surface/50 border border-white/10 rounded-lg p-3 focus:border-primary focus:outline-none transition-colors"
                 placeholder="000.000.000-00"
                 required
@@ -183,7 +183,7 @@ export const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = (
               <input
                 type="text"
                 value={formData.companyName}
-                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
                 className="w-full bg-surface/50 border border-white/10 rounded-lg p-3 focus:border-primary focus:outline-none transition-colors"
                 placeholder="Nome da empresa"
                 required
@@ -196,7 +196,7 @@ export const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = (
               <input
                 type="text"
                 value={formData.cnpj}
-                onChange={(e) => setFormData({ ...formData, cnpj: formatCNPJ(e.target.value) })}
+                onChange={(e) => setFormData(prev => ({ ...prev, cnpj: formatCNPJ(e.target.value) }))}
                 className="w-full bg-surface/50 border border-white/10 rounded-lg p-3 focus:border-primary focus:outline-none transition-colors"
                 placeholder="00.000.000/0000-00"
                 required
