@@ -27,18 +27,27 @@ export const authPlugin: FastifyPluginAsync = fp(
     const supabaseUrl =
       process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 
-    if (!supabaseUrl) {
-      throw new Error('SUPABASE_URL is required');
-    }
+    let JWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
 
-    const JWKS = createRemoteJWKSet(
-      new URL(`${supabaseUrl}/auth/v1/.well-known/jwks.json`)
-    );
+    if (supabaseUrl) {
+      JWKS = createRemoteJWKSet(
+        new URL(`${supabaseUrl}/auth/v1/.well-known/jwks.json`)
+      );
+    } else {
+      server.log.warn('SUPABASE_URL not configured - authentication will be disabled');
+    }
 
     const authenticate = async (
       request: FastifyRequest,
       reply: FastifyReply
     ) => {
+      if (!JWKS || !supabaseUrl) {
+        return reply.status(503).send({
+          success: false,
+          error: 'Authentication not configured',
+        });
+      }
+
       const authHeader = request.headers.authorization;
 
       if (!authHeader?.startsWith('Bearer ')) {

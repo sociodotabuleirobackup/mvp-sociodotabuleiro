@@ -6,10 +6,11 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
     server: {
-      port: 3000,
+      port: 5000,
       host: '0.0.0.0',
+      allowedHosts: true,
       watch: {
-        usePolling: true, // Required for Docker
+        usePolling: true,
       },
     },
     plugins: [react()],

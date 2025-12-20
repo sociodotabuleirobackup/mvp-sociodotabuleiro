@@ -44,7 +44,7 @@ async function start() {
 
     // Start server
     const port = Number(process.env.PORT) || 3001;
-    const host = process.env.HOST || '0.0.0.0';
+    const host = process.env.HOST || 'localhost';
 
     await server.listen({ port, host });
 
