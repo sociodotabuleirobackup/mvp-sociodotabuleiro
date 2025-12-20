@@ -12,8 +12,38 @@ export class WebhookHandlers {
       );
     }
 
-    const sync = await getStripeSync();
-    await sync.processWebhook(payload, signature);
+    try {
+      const sync = await getStripeSync();
+      await sync.processWebhook(payload, signature);
+    } catch (syncError: any) {
+      console.warn('StripeSync not available, processing webhook manually:', syncError.message);
+      
+      const stripe = await getStripeClient();
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+      
+      if (!webhookSecret) {
+        throw new Error('STRIPE_WEBHOOK_SECRET not configured for manual webhook processing');
+      }
+      
+      const event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+      
+      switch (event.type) {
+        case 'account.updated':
+          await WebhookHandlers.handleAccountUpdated(event);
+          break;
+        case 'payment_intent.succeeded':
+          await WebhookHandlers.handlePaymentIntentSucceeded(event);
+          break;
+        case 'payment_intent.payment_failed':
+          await WebhookHandlers.handlePaymentIntentFailed(event);
+          break;
+        case 'charge.refunded':
+          await WebhookHandlers.handleRefundCreated(event);
+          break;
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+    }
   }
 
   static async handleAccountUpdated(event: Stripe.Event): Promise<void> {
