@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@types/stripe':
+        specifier: ^8.0.417
+        version: 8.0.417(@types/node@20.19.27)
       stripe:
         specifier: ^20.1.0
         version: 20.1.0(@types/node@20.19.27)
@@ -1834,6 +1837,10 @@ packages:
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
+
+  '@types/stripe@8.0.417':
+    resolution: {integrity: sha512-PTuqskh9YKNENnOHGVJBm4sM0zE8B1jZw1JIskuGAPkMB+OH236QeN8scclhYGPA4nG6zTtPXgwpXdp+HPDTVw==}
+    deprecated: This is a stub types definition. stripe provides its own type definitions, so you do not need this installed.
 
   '@types/yargs-parser@21.0.3':
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
@@ -7474,6 +7481,12 @@ snapshots:
   '@types/semver@7.7.1': {}
 
   '@types/stack-utils@2.0.3': {}
+
+  '@types/stripe@8.0.417(@types/node@20.19.27)':
+    dependencies:
+      stripe: 20.1.0(@types/node@20.19.27)
+    transitivePeerDependencies:
+      - '@types/node'
 
   '@types/yargs-parser@21.0.3': {}
 
