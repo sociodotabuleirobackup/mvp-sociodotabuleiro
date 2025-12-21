@@ -1,3 +1,4 @@
+modules = ["nodejs-20"]
 [[ports]]
 localPort = 3000
 externalPort = 3002
@@ -10,6 +11,43 @@ externalPort = 3001
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 5001
-externalPort = 3000
+[agent]
+expertMode = true
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm run dev:web"
+waitForPort = 5000
+
+[userenv]
+
+[userenv.shared]
+VITE_SUPABASE_URL = "${SUPABASE_URL}"
+VITE_SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["bash", "-c", "NODE_ENV=production node apps/api/dist/index.js"]
+build = ["bash", "-c", "pnpm install && pnpm run build"]
+
+[nix]
+channel = "stable-25_05"

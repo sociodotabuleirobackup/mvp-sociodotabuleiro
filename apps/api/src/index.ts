@@ -1,6 +1,8 @@
+import path from 'path'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import rateLimit from '@fastify/rate-limit'
+import fastifyStatic from '@fastify/static'
 import { prismaPlugin } from './plugins/prisma'
 import { authPlugin } from './plugins/auth'
 import { healthRoutes } from './routes/health'
@@ -37,8 +39,26 @@ async function start() {
     await server.register(sessionRoutes, { prefix: '/api' })
     await server.register(userRoutes, { prefix: '/api' })
 
+    // Serve static files from web app build (production only)
+    if (process.env.NODE_ENV === 'production') {
+      const webDistPath = path.join(__dirname, '../../web/dist')
+      await server.register(fastifyStatic, {
+        root: webDistPath,
+        prefix: '/',
+        decorateReply: false
+      })
+      
+      // SPA fallback - serve index.html for all non-API routes
+      server.setNotFoundHandler(async (request, reply) => {
+        if (!request.url.startsWith('/api') && !request.url.startsWith('/healthz')) {
+          return reply.sendFile('index.html')
+        }
+        return reply.code(404).send({ error: 'Not found' })
+      })
+    }
+
     // Start server
-    const port = Number(process.env.PORT) || 3001
+    const port = Number(process.env.PORT) || (process.env.NODE_ENV === 'production' ? 5000 : 3001)
     const host = process.env.HOST || '0.0.0.0'
     
     await server.listen({ port, host })
