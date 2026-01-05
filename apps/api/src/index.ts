@@ -5,6 +5,7 @@ import rateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
 import { prismaPlugin } from './plugins/prisma'
 import { authPlugin } from './plugins/auth'
+import { auditPlugin } from './plugins/audit'
 import { healthRoutes } from './routes/health'
 import { sessionRoutes } from './routes/sessions'
 import { userRoutes } from './routes/users'
@@ -64,6 +65,7 @@ async function start() {
     
     await server.register(prismaPlugin)
     await server.register(authPlugin)
+    await server.register(auditPlugin)
 
     server.setErrorHandler((error, request, reply) => {
       const statusCode = error.statusCode || 500

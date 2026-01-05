@@ -11136,12 +11136,12 @@ var require_range = __commonJS({
       debug("replaceGTE0", comp, options);
       return comp.trim().replace(re[options.includePrerelease ? t.GTE0PRE : t.GTE0], "");
     };
-    var hyphenReplace = (incPr) => ($0, from, fM, fm, fp3, fpr, fb, to, tM, tm, tp, tpr) => {
+    var hyphenReplace = (incPr) => ($0, from, fM, fm, fp4, fpr, fb, to, tM, tm, tp, tpr) => {
       if (isX(fM)) {
         from = "";
       } else if (isX(fm)) {
         from = `>=${fM}.0.0${incPr ? "-0" : ""}`;
-      } else if (isX(fp3)) {
+      } else if (isX(fp4)) {
         from = `>=${fM}.${fm}.0${incPr ? "-0" : ""}`;
       } else if (fpr) {
         from = `>=${from}`;
@@ -34419,7 +34419,7 @@ var require_vary = __commonJS({
 var require_cors = __commonJS({
   "../../node_modules/.pnpm/@fastify+cors@9.0.1/node_modules/@fastify/cors/index.js"(exports2, module2) {
     "use strict";
-    var fp3 = require_plugin2();
+    var fp4 = require_plugin2();
     var {
       addAccessControlRequestHeadersToVaryHeader,
       addOriginToVaryHeader
@@ -34645,7 +34645,7 @@ var require_cors = __commonJS({
         return !!allowedOrigin;
       }
     }
-    var _fastifyCors = fp3(fastifyCors, {
+    var _fastifyCors = fp4(fastifyCors, {
       fastify: "4.x",
       name: "@fastify/cors"
     });
@@ -34794,7 +34794,7 @@ var require_RedisStore = __commonJS({
 var require_rate_limit = __commonJS({
   "../../node_modules/.pnpm/@fastify+rate-limit@9.1.0/node_modules/@fastify/rate-limit/index.js"(exports2, module2) {
     "use strict";
-    var fp3 = require_plugin2();
+    var fp4 = require_plugin2();
     var ms = require_dist4();
     var LocalStore = require_LocalStore();
     var RedisStore = require_RedisStore();
@@ -35010,7 +35010,7 @@ var require_rate_limit = __commonJS({
         throw params.errorResponseBuilder(req, respCtx);
       };
     }
-    module2.exports = fp3(fastifyRateLimit, {
+    module2.exports = fp4(fastifyRateLimit, {
       fastify: "4.x",
       name: "@fastify/rate-limit"
     });
@@ -39329,8 +39329,8 @@ var require_commonjs4 = __commonJS({
           return this.#fullpath = this.name;
         }
         const pv = p.fullpath();
-        const fp3 = pv + (!p.parent ? "" : this.sep) + name;
-        return this.#fullpath = fp3;
+        const fp4 = pv + (!p.parent ? "" : this.sep) + name;
+        return this.#fullpath = fp4;
       }
       /**
        * On platforms other than windows, this is identical to fullpath.
@@ -43963,7 +43963,7 @@ var require_static = __commonJS({
     var { fileURLToPath } = require("node:url");
     var { statSync } = require("node:fs");
     var { glob } = require_commonjs5();
-    var fp3 = require_plugin2();
+    var fp4 = require_plugin2();
     var send = require_send();
     var encodingNegotiator = require_accept_negotiator();
     var contentDisposition = require_content_disposition();
@@ -44391,7 +44391,7 @@ var require_static = __commonJS({
         throw err;
       }
     }
-    module2.exports = fp3(fastifyStatic2, {
+    module2.exports = fp4(fastifyStatic2, {
       fastify: "4.x",
       name: "@fastify/static"
     });
@@ -45938,6 +45938,40 @@ var authPlugin = (0, import_fastify_plugin2.default)(async (server2) => {
   server2.decorate("requireRole", requireRole);
   server2.decorate("requireAnyRole", requireAnyRole);
   server2.decorate("authorize", authorize);
+});
+
+// src/plugins/audit.ts
+var import_fastify_plugin3 = __toESM(require_plugin2());
+var auditPlugin = (0, import_fastify_plugin3.default)(async (server2) => {
+  server2.decorate("audit", (event) => {
+    const fullEvent = {
+      ...event,
+      timestamp: /* @__PURE__ */ new Date()
+    };
+    server2.log.info({
+      audit: true,
+      action: fullEvent.action,
+      actorSub: fullEvent.actorSub,
+      actorId: fullEvent.actorId,
+      targetType: fullEvent.targetType,
+      targetId: fullEvent.targetId,
+      detail: fullEvent.detail,
+      timestamp: fullEvent.timestamp.toISOString()
+    }, `AUDIT: ${fullEvent.action}`);
+  });
+  server2.addHook("onResponse", async (request, reply) => {
+    const sub = request.auth?.sub || "anonymous";
+    const route = request.routeOptions?.url || request.url;
+    const method = request.method;
+    const status = reply.statusCode;
+    server2.log.info({
+      sub: sub.substring(0, 20),
+      method,
+      route,
+      status,
+      responseTime: reply.getResponseTime()
+    }, `${method} ${route} -> ${status}`);
+  });
 });
 
 // src/routes/health.ts
@@ -50195,6 +50229,14 @@ async function sessionRoutes(app) {
         });
       }
       await app.prisma.session.delete({ where: { id } });
+      app.audit({
+        action: "session.delete",
+        actorSub: request.auth.sub,
+        actorId: request.user.id,
+        targetType: "session",
+        targetId: id,
+        detail: { isAdmin, isOwner }
+      });
       return { success: true, data: { deleted: true } };
     } catch (error) {
       app.log.error({ error }, "Failed to delete session");
@@ -50398,6 +50440,7 @@ async function start() {
     });
     await server.register(prismaPlugin);
     await server.register(authPlugin);
+    await server.register(auditPlugin);
     server.setErrorHandler((error, request, reply) => {
       const statusCode = error.statusCode || 500;
       if (statusCode === 429) {

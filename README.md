@@ -157,11 +157,80 @@ pnpm typecheck:web    # TypeScript check no web
 pnpm clean            # Limpar caches e builds
 ```
 
+## 🔐 Autenticação (Auth0)
+
+A API usa Auth0 para autenticação JWT. Configure as seguintes variáveis de ambiente:
+
+### Variáveis Obrigatórias
+
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `AUTH0_DOMAIN` | Domínio do tenant Auth0 | `app-sociodotabuleiro.us.auth0.com` |
+| `AUTH0_CLIENT_ID` | Client ID da aplicação SPA | `abc123...` |
+| `AUTH0_CLIENT_SECRET` | Client Secret (apenas backend) | `xyz789...` |
+| `AUTH0_ISSUER_BASE_URL` | URL base do issuer | `https://app-sociodotabuleiro.us.auth0.com/` |
+| `AUTH0_AUDIENCE` | Audience da API | `https://api.sociodotabuleiro` |
+
+### Configuração Auth0
+
+1. **Criar API no Auth0:**
+   - Identifier: `https://api.sociodotabuleiro`
+   - Signing Algorithm: RS256
+   - Enable RBAC: ✅
+   - Add Permissions in Access Token: ✅
+
+2. **Permissões da API:**
+   - `sessions:read` - Ler sessões
+   - `sessions:write` - Criar/editar sessões
+   - `sessions:delete` - Deletar sessões
+   - `bookings:read` - Ler reservas
+   - `bookings:write` - Criar/editar reservas
+   - `admin:all` - Acesso administrativo total
+
+3. **Action Post Login (para roles):**
+   ```javascript
+   exports.onExecutePostLogin = async (event, api) => {
+     const roles = event.authorization?.roles || []
+     api.accessToken.setCustomClaim('https://sociodotabuleiro.app/roles', roles)
+   }
+   ```
+
+4. **Roles (criar em User Management > Roles):**
+   - `PLAYER` - Jogador padrão
+   - `MASTER` - Mestre de RPG
+   - `VENUE` - Lojista/Espaço
+   - `ADMIN` - Administrador
+
+### Frontend (Vite)
+
+```env
+VITE_AUTH0_DOMAIN=app-sociodotabuleiro.us.auth0.com
+VITE_AUTH0_CLIENT_ID=seu_client_id
+VITE_AUTH0_AUDIENCE=https://api.sociodotabuleiro
+```
+
+### Backend (Node.js)
+
+```env
+AUTH0_ISSUER_BASE_URL=https://app-sociodotabuleiro.us.auth0.com/
+AUTH0_AUDIENCE=https://api.sociodotabuleiro
+```
+
+## 🧪 Testes
+
+```bash
+# Rodar testes da API
+cd apps/api && pnpm test
+
+# Testes específicos
+pnpm test -- auth.test.ts
+```
+
 ## 🌟 Próximos Passos
 
-- [ ] Implementar autenticação completa
+- [x] Implementar autenticação completa (Auth0)
 - [ ] Integrar APIs de pagamento
 - [ ] Sistema de notificações
-- [ ] Testes automatizados
+- [x] Testes automatizados (básicos)
 - [ ] CI/CD pipeline
 - [ ] Documentação da API

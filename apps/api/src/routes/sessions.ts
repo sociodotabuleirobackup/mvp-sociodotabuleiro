@@ -171,6 +171,15 @@ export async function sessionRoutes(app: FastifyInstance) {
 
       await app.prisma.session.delete({ where: { id } })
 
+      app.audit({
+        action: 'session.delete',
+        actorSub: request.auth.sub,
+        actorId: request.user.id,
+        targetType: 'session',
+        targetId: id,
+        detail: { isAdmin, isOwner }
+      })
+
       return { success: true, data: { deleted: true } }
     } catch (error) {
       app.log.error({ error }, 'Failed to delete session')
