@@ -1,6 +1,10 @@
 import { FastifyInstance } from 'fastify'
 
 export async function healthRoutes(app: FastifyInstance) {
+  app.get('/health', async () => {
+    return { status: 'ok' }
+  })
+
   app.get('/healthz', async () => {
     try {
       await app.prisma.$queryRaw`SELECT 1`
