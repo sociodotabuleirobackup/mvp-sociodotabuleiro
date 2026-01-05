@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { updateUserSchema, createMasterProfileSchema } from '@socio-do-tabuleiro/shared'
 
 export async function userRoutes(app: FastifyInstance) {
-  // GET /api/me - Auth0 token info + upsert user in DB
+  // GET /api/me - Get or create user
   app.get('/me', {
     preHandler: [app.authenticate]
   }, async (request, reply) => {
@@ -30,7 +30,7 @@ export async function userRoutes(app: FastifyInstance) {
         success: true, 
         data: {
           id: user.id,
-          auth0Sub: user.auth0Sub,
+          sub: user.auth0Sub,
           email: user.email,
           name: user.name,
           role: user.role,
@@ -49,7 +49,7 @@ export async function userRoutes(app: FastifyInstance) {
     }
   })
 
-  // GET /api/users/me - Perfil do usuário autenticado
+  // GET /api/users/me - User profile
   app.get('/users/me', {
     preHandler: [app.authenticate]
   }, async (request, reply) => {
@@ -79,7 +79,7 @@ export async function userRoutes(app: FastifyInstance) {
     }
   })
 
-  // PUT /api/users/me - Atualizar perfil
+  // PUT /api/users/me - Update profile
   app.put('/users/me', {
     preHandler: [app.authenticate]
   }, async (request, reply) => {
@@ -112,7 +112,7 @@ export async function userRoutes(app: FastifyInstance) {
     }
   })
 
-  // POST /api/users/master-profile - Criar perfil de mestre
+  // POST /api/users/master-profile - Create master profile
   app.post('/users/master-profile', {
     preHandler: [app.authenticate]
   }, async (request, reply) => {

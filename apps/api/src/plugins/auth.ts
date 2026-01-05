@@ -1,27 +1,17 @@
+import { FastifyPluginAsync, FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import fp from 'fastify-plugin'
-import { FastifyInstance, FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify'
-import { createRemoteJWKSet, jwtVerify, JWTPayload } from 'jose'
-
-interface Auth0TokenPayload extends JWTPayload {
-  sub: string
-  email?: string
-  permissions?: string[]
-  'https://sociodotabuleiro.app/roles'?: string[]
-}
 
 interface AuthorizeOptions {
-  permissions?: string[]
   anyPermissions?: string[]
-  roles?: string[]
+  allPermissions?: string[]
   anyRoles?: string[]
-  allowAdmin?: boolean
+  allRoles?: string[]
 }
 
 declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>
     requirePermission: (permission: string) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>
-    requireAnyPermission: (permissions: string[]) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>
     requireRole: (role: string) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>
     requireAnyRole: (roles: string[]) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>
     authorize: (options: AuthorizeOptions) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>
@@ -39,96 +29,21 @@ declare module 'fastify' {
   }
 }
 
-const sendForbidden = (reply: FastifyReply, code: string, detail: string) => {
-  return reply.status(403).send({
-    success: false,
-    error: 'Forbidden',
-    code,
-    detail
-  })
-}
-
 export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance) => {
-  const issuerBaseUrl = process.env.AUTH0_ISSUER_BASE_URL || 'https://app-sociodotabuleiro.us.auth0.com/'
-  const audience = process.env.AUTH0_AUDIENCE || 'https://api.sociodotabuleiro'
-  
-  const issuer = issuerBaseUrl.endsWith('/') ? issuerBaseUrl : `${issuerBaseUrl}/`
-  
-  const JWKS = createRemoteJWKSet(
-    new URL(`${issuer}.well-known/jwks.json`)
-  )
-
-  server.log.info({ issuer, audience }, 'Auth0 JWT validation configured')
+  server.log.info('Auth plugin loaded (mock mode - no JWT validation)')
 
   const authenticate = async (request: FastifyRequest, reply: FastifyReply) => {
     if (request.auth) return
 
-    const authHeader = request.headers.authorization
-
-    if (!authHeader?.startsWith('Bearer ')) {
-      return reply.status(401).send({ 
-        success: false, 
-        error: 'Missing or invalid authorization header' 
-      })
+    request.user = { 
+      id: 'mock-user-id', 
+      email: 'demo@sociodotabuleiro.app' 
     }
-
-    const token = authHeader.split(' ')[1]
-
-    try {
-      const { payload } = await jwtVerify(token, JWKS, {
-        issuer: issuer,
-        audience: audience,
-      })
-
-      const auth0Payload = payload as Auth0TokenPayload
-
-      if (!auth0Payload.iss || auth0Payload.iss !== issuer) {
-        server.log.warn({ expected: issuer, got: auth0Payload.iss }, 'Token issuer mismatch')
-        return reply.status(401).send({ 
-          success: false, 
-          error: 'Unauthorized',
-          code: 'INVALID_ISSUER'
-        })
-      }
-
-      if (!auth0Payload.aud) {
-        server.log.warn('Token missing audience')
-        return reply.status(401).send({ 
-          success: false, 
-          error: 'Unauthorized',
-          code: 'MISSING_AUDIENCE'
-        })
-      }
-
-      if (!auth0Payload.sub) {
-        return reply.status(401).send({ 
-          success: false, 
-          error: 'Unauthorized',
-          code: 'INVALID_TOKEN'
-        })
-      }
-
-      request.user = { 
-        id: auth0Payload.sub, 
-        email: auth0Payload.email || '' 
-      }
-      
-      request.auth = {
-        sub: auth0Payload.sub,
-        permissions: auth0Payload.permissions || [],
-        roles: auth0Payload['https://sociodotabuleiro.app/roles'] || []
-      }
-      
-    } catch (error) {
-      const isProduction = process.env.NODE_ENV === 'production'
-      if (!isProduction) {
-        server.log.warn({ error }, 'Auth0 authentication failed')
-      }
-      return reply.status(401).send({ 
-        success: false, 
-        error: 'Unauthorized',
-        code: 'AUTHENTICATION_FAILED'
-      })
+    
+    request.auth = {
+      sub: 'mock-sub-' + Date.now(),
+      permissions: ['sessions:read', 'sessions:write', 'sessions:delete', 'bookings:read', 'bookings:write'],
+      roles: ['PLAYER', 'MASTER']
     }
   }
 
@@ -144,22 +59,13 @@ export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance)
       
       if (isAdmin(request)) return
       
-      if (!request.auth?.permissions?.includes(permission)) {
-        return sendForbidden(reply, 'MISSING_PERMISSION', `Required permission: ${permission}`)
-      }
-    }
-  }
-
-  const requireAnyPermission = (permissions: string[]) => {
-    return async (request: FastifyRequest, reply: FastifyReply) => {
-      await authenticate(request, reply)
-      if (reply.sent) return
-      
-      if (isAdmin(request)) return
-      
-      const hasPermission = permissions.some(p => request.auth?.permissions?.includes(p))
-      if (!hasPermission) {
-        return sendForbidden(reply, 'MISSING_PERMISSION', `Required one of: ${permissions.join(', ')}`)
+      if (!request.auth.permissions.includes(permission)) {
+        return reply.status(403).send({
+          success: false,
+          error: 'Forbidden',
+          code: 'MISSING_PERMISSION',
+          detail: `Required permission: ${permission}`
+        })
       }
     }
   }
@@ -171,8 +77,13 @@ export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance)
       
       if (isAdmin(request)) return
       
-      if (!request.auth?.roles?.includes(role)) {
-        return sendForbidden(reply, 'MISSING_ROLE', `Required role: ${role}`)
+      if (!request.auth.roles.includes(role)) {
+        return reply.status(403).send({
+          success: false,
+          error: 'Forbidden',
+          code: 'MISSING_ROLE',
+          detail: `Required role: ${role}`
+        })
       }
     }
   }
@@ -184,9 +95,14 @@ export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance)
       
       if (isAdmin(request)) return
       
-      const hasRole = roles.some(r => request.auth?.roles?.includes(r))
+      const hasRole = roles.some(role => request.auth.roles.includes(role))
       if (!hasRole) {
-        return sendForbidden(reply, 'MISSING_ROLE', `Required one of: ${roles.join(', ')}`)
+        return reply.status(403).send({
+          success: false,
+          error: 'Forbidden',
+          code: 'MISSING_ROLE',
+          detail: `Required one of roles: ${roles.join(', ')}`
+        })
       }
     }
   }
@@ -195,36 +111,54 @@ export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance)
     return async (request: FastifyRequest, reply: FastifyReply) => {
       await authenticate(request, reply)
       if (reply.sent) return
+      
+      if (isAdmin(request)) return
 
-      const { permissions, anyPermissions, roles, anyRoles, allowAdmin = true } = options
-
-      if (allowAdmin && isAdmin(request)) return
-
-      if (permissions) {
-        const hasAll = permissions.every(p => request.auth?.permissions?.includes(p))
+      if (options.allPermissions) {
+        const hasAll = options.allPermissions.every(p => request.auth.permissions.includes(p))
         if (!hasAll) {
-          return sendForbidden(reply, 'MISSING_PERMISSION', `Required permissions: ${permissions.join(', ')}`)
+          return reply.status(403).send({
+            success: false,
+            error: 'Forbidden',
+            code: 'MISSING_PERMISSIONS',
+            detail: `Required all permissions: ${options.allPermissions.join(', ')}`
+          })
         }
       }
 
-      if (anyPermissions) {
-        const hasAny = anyPermissions.some(p => request.auth?.permissions?.includes(p))
+      if (options.anyPermissions) {
+        const hasAny = options.anyPermissions.some(p => request.auth.permissions.includes(p))
         if (!hasAny) {
-          return sendForbidden(reply, 'MISSING_PERMISSION', `Required one of: ${anyPermissions.join(', ')}`)
+          return reply.status(403).send({
+            success: false,
+            error: 'Forbidden',
+            code: 'MISSING_PERMISSION',
+            detail: `Required one of permissions: ${options.anyPermissions.join(', ')}`
+          })
         }
       }
 
-      if (roles) {
-        const hasAll = roles.every(r => request.auth?.roles?.includes(r))
+      if (options.allRoles) {
+        const hasAll = options.allRoles.every(r => request.auth.roles.includes(r))
         if (!hasAll) {
-          return sendForbidden(reply, 'MISSING_ROLE', `Required roles: ${roles.join(', ')}`)
+          return reply.status(403).send({
+            success: false,
+            error: 'Forbidden',
+            code: 'MISSING_ROLES',
+            detail: `Required all roles: ${options.allRoles.join(', ')}`
+          })
         }
       }
 
-      if (anyRoles) {
-        const hasAny = anyRoles.some(r => request.auth?.roles?.includes(r))
+      if (options.anyRoles) {
+        const hasAny = options.anyRoles.some(r => request.auth.roles.includes(r))
         if (!hasAny) {
-          return sendForbidden(reply, 'MISSING_ROLE', `Required one of: ${anyRoles.join(', ')}`)
+          return reply.status(403).send({
+            success: false,
+            error: 'Forbidden',
+            code: 'MISSING_ROLE',
+            detail: `Required one of roles: ${options.anyRoles.join(', ')}`
+          })
         }
       }
     }
@@ -232,7 +166,6 @@ export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance)
 
   server.decorate('authenticate', authenticate)
   server.decorate('requirePermission', requirePermission)
-  server.decorate('requireAnyPermission', requireAnyPermission)
   server.decorate('requireRole', requireRole)
   server.decorate('requireAnyRole', requireAnyRole)
   server.decorate('authorize', authorize)

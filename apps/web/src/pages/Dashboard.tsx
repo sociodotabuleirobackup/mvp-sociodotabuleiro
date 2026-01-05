@@ -53,7 +53,7 @@ export const Dashboard: React.FC = () => {
             <span className="material-symbols-outlined text-green-400">verified</span>
           </div>
           <div>
-            <span className="text-green-400 text-sm font-bold">Autenticado via Auth0</span>
+            <span className="text-green-400 text-sm font-bold">Autenticado</span>
             <p className="text-xs text-gray-400 font-mono">{user.uid}</p>
           </div>
         </div>

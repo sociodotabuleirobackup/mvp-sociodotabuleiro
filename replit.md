@@ -44,7 +44,7 @@ The project uses a **pnpm workspace monorepo** with clear separation between app
 **API Server** (`apps/api/`)
 - **Framework**: Fastify 4 with TypeScript
 - **Build Tool**: esbuild (bundles to single dist/index.js)
-- **Authentication**: JWT verification using Supabase JWKS endpoint (via `jose` library)
+- **Authentication**: Mock auth for development (to be replaced with real auth provider)
 - **Rate Limiting**: Built-in via `@fastify/rate-limit`
 - **CORS**: Configured via `@fastify/cors`
 - **Static Files**: @fastify/static (v7.0.4) serves frontend in production

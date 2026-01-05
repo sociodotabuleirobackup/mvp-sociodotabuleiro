@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
 import { User, UserRole, Notification, ContractStatus } from '@socio-do-tabuleiro/shared';
 import { setAuthFunctions } from './services/api';
 
@@ -18,56 +17,53 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const MOCK_TOKEN = 'mock-jwt-token-for-development';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { 
-    isAuthenticated: auth0Authenticated, 
-    isLoading: auth0Loading, 
-    user: auth0User,
-    loginWithRedirect,
-    logout: auth0Logout,
-    getAccessTokenSilently
-  } = useAuth0();
-  
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const getAccessToken = async (): Promise<string> => {
-    const token = await getAccessTokenSilently({
-      authorizationParams: {
-        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-        scope: 'openid profile email'
+  useEffect(() => {
+    const savedUser = localStorage.getItem('mockUser');
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        setUser(parsed);
+        setIsAuthenticated(true);
+      } catch (e) {
+        localStorage.removeItem('mockUser');
       }
-    });
-    return token;
+    }
+    setLoading(false);
+  }, []);
+
+  const getAccessToken = async (): Promise<string> => {
+    return MOCK_TOKEN;
   };
 
   const login = () => {
-    loginWithRedirect();
+    const storedRole = localStorage.getItem('userRole') as UserRole || UserRole.PLAYER;
+    const mockUser: User = {
+      uid: 'mock-user-' + Date.now(),
+      name: 'Usuário Demo',
+      email: 'demo@sociodotabuleiro.app',
+      role: storedRole,
+      avatarUrl: 'https://picsum.photos/200',
+      level: 1,
+      founderPactStatus: storedRole === UserRole.MASTER ? ContractStatus.PENDING_SIGNATURE : ContractStatus.SIGNED,
+      termsAcceptedAt: new Date().toISOString()
+    };
+    
+    setUser(mockUser);
+    setIsAuthenticated(true);
+    localStorage.setItem('mockUser', JSON.stringify(mockUser));
   };
 
   useEffect(() => {
     setAuthFunctions(getAccessToken, login);
   }, []);
-
-  useEffect(() => {
-    if (auth0Authenticated && auth0User) {
-      const storedRole = localStorage.getItem('userRole') as UserRole || UserRole.PLAYER;
-      
-      const appUser: User = {
-        uid: auth0User.sub || '',
-        name: auth0User.name || auth0User.nickname || 'Usuário',
-        email: auth0User.email || '',
-        role: storedRole,
-        avatarUrl: auth0User.picture || 'https://picsum.photos/200',
-        level: 1,
-        founderPactStatus: storedRole === UserRole.MASTER ? ContractStatus.PENDING_SIGNATURE : ContractStatus.SIGNED,
-        termsAcceptedAt: new Date().toISOString()
-      };
-      setUser(appUser);
-    } else {
-      setUser(null);
-    }
-  }, [auth0Authenticated, auth0User]);
 
   useEffect(() => {
     if (user) {
@@ -81,21 +77,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('userRole');
-    auth0Logout({ 
-      logoutParams: {
-        returnTo: window.location.origin 
-      }
-    });
+    localStorage.removeItem('mockUser');
+    setUser(null);
+    setIsAuthenticated(false);
   };
 
   const setUserRole = (role: UserRole) => {
     localStorage.setItem('userRole', role);
     if (user) {
-      setUser({ 
+      const updatedUser = { 
         ...user, 
         role,
         founderPactStatus: role === UserRole.MASTER ? ContractStatus.PENDING_SIGNATURE : ContractStatus.SIGNED
-      });
+      };
+      setUser(updatedUser);
+      localStorage.setItem('mockUser', JSON.stringify(updatedUser));
     }
   };
 
@@ -105,17 +101,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateContractStatus = (status: ContractStatus) => {
     if (user) {
-      setUser({ ...user, founderPactStatus: status });
+      const updatedUser = { ...user, founderPactStatus: status };
+      setUser(updatedUser);
+      localStorage.setItem('mockUser', JSON.stringify(updatedUser));
     }
   };
 
   return (
     <AuthContext.Provider value={{ 
       user, 
-      isAuthenticated: auth0Authenticated, 
+      isAuthenticated, 
       login, 
       logout, 
-      loading: auth0Loading, 
+      loading, 
       notifications, 
       markAsRead, 
       updateContractStatus,
