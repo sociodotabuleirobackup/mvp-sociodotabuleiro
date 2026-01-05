@@ -45812,7 +45812,7 @@ var authPlugin = (0, import_fastify_plugin2.default)(async (server2) => {
       request.auth = {
         sub: auth0Payload.sub,
         permissions: auth0Payload.permissions || [],
-        roles: auth0Payload["https://sociodotabuleiro.com/roles"] || []
+        roles: auth0Payload["https://sociodotabuleiro.app/roles"] || []
       };
     } catch (error) {
       server2.log.warn({ error }, "Auth0 authentication failed");

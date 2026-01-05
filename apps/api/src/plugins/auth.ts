@@ -6,7 +6,7 @@ interface Auth0TokenPayload extends JWTPayload {
   sub: string
   email?: string
   permissions?: string[]
-  'https://sociodotabuleiro.com/roles'?: string[]
+  'https://sociodotabuleiro.app/roles'?: string[]
 }
 
 declare module 'fastify' {
@@ -72,7 +72,7 @@ export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance)
       request.auth = {
         sub: auth0Payload.sub,
         permissions: auth0Payload.permissions || [],
-        roles: auth0Payload['https://sociodotabuleiro.com/roles'] || []
+        roles: auth0Payload['https://sociodotabuleiro.app/roles'] || []
       }
       
     } catch (error) {
