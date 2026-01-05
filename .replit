@@ -48,7 +48,7 @@ VITE_SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
 [deployment]
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "NODE_ENV=production node apps/api/dist/index.js"]
-build = ["bash", "-c", "pnpm install && pnpm run build"]
+build = ["bash", "-c", "pnpm install && cd packages/database && npx prisma generate && cd ../.. && pnpm run build"]
 
 [nix]
 channel = "stable-25_05"
