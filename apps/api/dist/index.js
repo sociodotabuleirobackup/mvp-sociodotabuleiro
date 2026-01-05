@@ -45779,6 +45779,14 @@ function createRemoteJWKSet(url, options) {
 }
 
 // src/plugins/auth.ts
+var sendForbidden = (reply, code, detail) => {
+  return reply.status(403).send({
+    success: false,
+    error: "Forbidden",
+    code,
+    detail
+  });
+};
 var authPlugin = (0, import_fastify_plugin2.default)(async (server2) => {
   const issuerBaseUrl = process.env.AUTH0_ISSUER_BASE_URL || "https://app-sociodotabuleiro.us.auth0.com/";
   const audience = process.env.AUTH0_AUDIENCE || "https://api.sociodotabuleiro";
@@ -45788,6 +45796,7 @@ var authPlugin = (0, import_fastify_plugin2.default)(async (server2) => {
   );
   server2.log.info({ issuer, audience }, "Auth0 JWT validation configured");
   const authenticate = async (request, reply) => {
+    if (request.auth) return;
     const authHeader = request.headers.authorization;
     if (!authHeader?.startsWith("Bearer ")) {
       return reply.status(401).send({
@@ -45822,32 +45831,89 @@ var authPlugin = (0, import_fastify_plugin2.default)(async (server2) => {
       });
     }
   };
-  server2.decorate("authenticate", authenticate);
+  const isAdmin = (request) => {
+    return request.auth?.roles?.includes("ADMIN") || request.auth?.permissions?.includes("admin:all");
+  };
   const requirePermission = (permission) => {
     return async (request, reply) => {
       await authenticate(request, reply);
+      if (reply.sent) return;
+      if (isAdmin(request)) return;
       if (!request.auth?.permissions?.includes(permission)) {
-        return reply.status(403).send({
-          success: false,
-          error: `Missing required permission: ${permission}`
-        });
+        return sendForbidden(reply, "MISSING_PERMISSION", `Required permission: ${permission}`);
       }
     };
   };
   const requireAnyPermission = (permissions) => {
     return async (request, reply) => {
       await authenticate(request, reply);
+      if (reply.sent) return;
+      if (isAdmin(request)) return;
       const hasPermission = permissions.some((p) => request.auth?.permissions?.includes(p));
       if (!hasPermission) {
-        return reply.status(403).send({
-          success: false,
-          error: `Missing required permission. Need one of: ${permissions.join(", ")}`
-        });
+        return sendForbidden(reply, "MISSING_PERMISSION", `Required one of: ${permissions.join(", ")}`);
       }
     };
   };
+  const requireRole = (role) => {
+    return async (request, reply) => {
+      await authenticate(request, reply);
+      if (reply.sent) return;
+      if (isAdmin(request)) return;
+      if (!request.auth?.roles?.includes(role)) {
+        return sendForbidden(reply, "MISSING_ROLE", `Required role: ${role}`);
+      }
+    };
+  };
+  const requireAnyRole = (roles) => {
+    return async (request, reply) => {
+      await authenticate(request, reply);
+      if (reply.sent) return;
+      if (isAdmin(request)) return;
+      const hasRole = roles.some((r) => request.auth?.roles?.includes(r));
+      if (!hasRole) {
+        return sendForbidden(reply, "MISSING_ROLE", `Required one of: ${roles.join(", ")}`);
+      }
+    };
+  };
+  const authorize = (options) => {
+    return async (request, reply) => {
+      await authenticate(request, reply);
+      if (reply.sent) return;
+      const { permissions, anyPermissions, roles, anyRoles, allowAdmin = true } = options;
+      if (allowAdmin && isAdmin(request)) return;
+      if (permissions) {
+        const hasAll = permissions.every((p) => request.auth?.permissions?.includes(p));
+        if (!hasAll) {
+          return sendForbidden(reply, "MISSING_PERMISSION", `Required permissions: ${permissions.join(", ")}`);
+        }
+      }
+      if (anyPermissions) {
+        const hasAny = anyPermissions.some((p) => request.auth?.permissions?.includes(p));
+        if (!hasAny) {
+          return sendForbidden(reply, "MISSING_PERMISSION", `Required one of: ${anyPermissions.join(", ")}`);
+        }
+      }
+      if (roles) {
+        const hasAll = roles.every((r) => request.auth?.roles?.includes(r));
+        if (!hasAll) {
+          return sendForbidden(reply, "MISSING_ROLE", `Required roles: ${roles.join(", ")}`);
+        }
+      }
+      if (anyRoles) {
+        const hasAny = anyRoles.some((r) => request.auth?.roles?.includes(r));
+        if (!hasAny) {
+          return sendForbidden(reply, "MISSING_ROLE", `Required one of: ${anyRoles.join(", ")}`);
+        }
+      }
+    };
+  };
+  server2.decorate("authenticate", authenticate);
   server2.decorate("requirePermission", requirePermission);
   server2.decorate("requireAnyPermission", requireAnyPermission);
+  server2.decorate("requireRole", requireRole);
+  server2.decorate("requireAnyRole", requireAnyRole);
+  server2.decorate("authorize", authorize);
 });
 
 // src/routes/health.ts
@@ -49985,7 +50051,12 @@ async function sessionRoutes(app) {
     }
   });
   app.post("/sessions", {
-    preHandler: [app.authenticate]
+    preHandler: [
+      app.authorize({
+        anyPermissions: ["sessions:write", "admin:all"],
+        anyRoles: ["MASTER", "VENUE", "ADMIN"]
+      })
+    ]
   }, async (request, reply) => {
     try {
       const data = createSessionSchema.parse(request.body);
@@ -49993,10 +50064,27 @@ async function sessionRoutes(app) {
         where: { id: request.user.id },
         include: { masterProfile: true }
       });
-      if (user?.role !== "MASTER" || !user.masterProfile) {
+      if (!user) {
+        return reply.status(404).send({
+          success: false,
+          error: "User not found"
+        });
+      }
+      let masterId = null;
+      if (user.masterProfile) {
+        masterId = user.masterProfile.id;
+      } else if (user.role === "MASTER") {
+        const masterProfile = await app.prisma.masterProfile.create({
+          data: { userId: user.id, bio: "" }
+        });
+        masterId = masterProfile.id;
+      }
+      if (!masterId) {
         return reply.status(403).send({
           success: false,
-          error: "Only masters can create sessions"
+          error: "Forbidden",
+          code: "NO_MASTER_PROFILE",
+          detail: "User must have a master profile to create sessions"
         });
       }
       const session = await app.prisma.session.create({
@@ -50008,7 +50096,7 @@ async function sessionRoutes(app) {
           price: data.price,
           duration: 180,
           scheduledAt: new Date(data.date),
-          masterId: user.masterProfile.id
+          masterId
         },
         include: {
           master: true
@@ -50024,6 +50112,68 @@ async function sessionRoutes(app) {
         });
       }
       app.log.error({ error }, "Failed to create session");
+      return reply.status(500).send({
+        success: false,
+        error: "Internal server error"
+      });
+    }
+  });
+  app.get("/sessions/:id", async (request, reply) => {
+    try {
+      const { id } = request.params;
+      const session = await app.prisma.session.findUnique({
+        where: { id },
+        include: {
+          master: { include: { user: true } },
+          store: true,
+          bookings: { include: { user: true } }
+        }
+      });
+      if (!session) {
+        return reply.status(404).send({
+          success: false,
+          error: "Session not found"
+        });
+      }
+      return { success: true, data: session };
+    } catch (error) {
+      app.log.error({ error }, "Failed to fetch session");
+      return reply.status(500).send({
+        success: false,
+        error: "Internal server error"
+      });
+    }
+  });
+  app.delete("/sessions/:id", {
+    preHandler: [app.authenticate]
+  }, async (request, reply) => {
+    try {
+      const { id } = request.params;
+      const session = await app.prisma.session.findUnique({
+        where: { id },
+        include: { master: true }
+      });
+      if (!session) {
+        return reply.status(404).send({
+          success: false,
+          error: "Session not found"
+        });
+      }
+      const isOwner = session.master?.userId === request.user.id;
+      const hasDeletePermission = request.auth.permissions.includes("sessions:delete");
+      const isAdmin = request.auth.roles.includes("ADMIN") || request.auth.permissions.includes("admin:all");
+      if (!isAdmin && !(hasDeletePermission && isOwner)) {
+        return reply.status(403).send({
+          success: false,
+          error: "Forbidden",
+          code: "NOT_OWNER_OR_ADMIN",
+          detail: "Must be admin or session owner with sessions:delete permission"
+        });
+      }
+      await app.prisma.session.delete({ where: { id } });
+      return { success: true, data: { deleted: true } };
+    } catch (error) {
+      app.log.error({ error }, "Failed to delete session");
       return reply.status(500).send({
         success: false,
         error: "Internal server error"

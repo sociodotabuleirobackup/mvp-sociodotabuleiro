@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { createSessionSchema } from '@socio-do-tabuleiro/shared'
 
 export async function sessionRoutes(app: FastifyInstance) {
-  // GET /api/sessions - Listar sessões públicas
+  // GET /api/sessions - Listar sessões públicas (sem auth)
   app.get('/sessions', async (request, reply) => {
     try {
       const sessions = await app.prisma.session.findMany({
@@ -25,23 +25,48 @@ export async function sessionRoutes(app: FastifyInstance) {
     }
   })
 
-  // POST /api/sessions - Criar sessão (autenticado)
+  // POST /api/sessions - Criar sessão
+  // Requer: permission sessions:write E role MASTER ou VENUE
   app.post('/sessions', {
-    preHandler: [app.authenticate]
+    preHandler: [
+      app.authorize({ 
+        anyPermissions: ['sessions:write', 'admin:all'],
+        anyRoles: ['MASTER', 'VENUE', 'ADMIN']
+      })
+    ]
   }, async (request, reply) => {
     try {
       const data = createSessionSchema.parse(request.body)
       
-      // Verificar se usuário é MASTER
       const user = await app.prisma.user.findUnique({
         where: { id: request.user.id },
         include: { masterProfile: true }
       })
 
-      if (user?.role !== 'MASTER' || !user.masterProfile) {
+      if (!user) {
+        return reply.status(404).send({
+          success: false,
+          error: 'User not found'
+        })
+      }
+
+      let masterId: string | null = null
+      
+      if (user.masterProfile) {
+        masterId = user.masterProfile.id
+      } else if (user.role === 'MASTER') {
+        const masterProfile = await app.prisma.masterProfile.create({
+          data: { userId: user.id, bio: '' }
+        })
+        masterId = masterProfile.id
+      }
+
+      if (!masterId) {
         return reply.status(403).send({
           success: false,
-          error: 'Only masters can create sessions'
+          error: 'Forbidden',
+          code: 'NO_MASTER_PROFILE',
+          detail: 'User must have a master profile to create sessions'
         })
       }
 
@@ -54,7 +79,7 @@ export async function sessionRoutes(app: FastifyInstance) {
           price: data.price,
           duration: 180,
           scheduledAt: new Date(data.date),
-          masterId: user.masterProfile.id
+          masterId: masterId
         },
         include: {
           master: true
@@ -72,6 +97,83 @@ export async function sessionRoutes(app: FastifyInstance) {
       }
       
       app.log.error({ error }, 'Failed to create session')
+      return reply.status(500).send({
+        success: false,
+        error: 'Internal server error'
+      })
+    }
+  })
+
+  // GET /api/sessions/:id - Detalhes da sessão (público)
+  app.get('/sessions/:id', async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string }
+      
+      const session = await app.prisma.session.findUnique({
+        where: { id },
+        include: {
+          master: { include: { user: true } },
+          store: true,
+          bookings: { include: { user: true } }
+        }
+      })
+
+      if (!session) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Session not found'
+        })
+      }
+
+      return { success: true, data: session }
+    } catch (error) {
+      app.log.error({ error }, 'Failed to fetch session')
+      return reply.status(500).send({
+        success: false,
+        error: 'Internal server error'
+      })
+    }
+  })
+
+  // DELETE /api/sessions/:id - Deletar sessão
+  // Requer: admin:all OU (sessions:delete + dono da sessão)
+  app.delete('/sessions/:id', {
+    preHandler: [app.authenticate]
+  }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string }
+      
+      const session = await app.prisma.session.findUnique({
+        where: { id },
+        include: { master: true }
+      })
+
+      if (!session) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Session not found'
+        })
+      }
+
+      const isOwner = session.master?.userId === request.user.id
+      const hasDeletePermission = request.auth.permissions.includes('sessions:delete')
+      const isAdmin = request.auth.roles.includes('ADMIN') || 
+                      request.auth.permissions.includes('admin:all')
+
+      if (!isAdmin && !(hasDeletePermission && isOwner)) {
+        return reply.status(403).send({
+          success: false,
+          error: 'Forbidden',
+          code: 'NOT_OWNER_OR_ADMIN',
+          detail: 'Must be admin or session owner with sessions:delete permission'
+        })
+      }
+
+      await app.prisma.session.delete({ where: { id } })
+
+      return { success: true, data: { deleted: true } }
+    } catch (error) {
+      app.log.error({ error }, 'Failed to delete session')
       return reply.status(500).send({
         success: false,
         error: 'Internal server error'
