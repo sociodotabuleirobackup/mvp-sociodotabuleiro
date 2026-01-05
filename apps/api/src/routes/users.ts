@@ -2,6 +2,21 @@ import { FastifyInstance } from 'fastify'
 import { updateUserSchema, createMasterProfileSchema } from '@socio-do-tabuleiro/shared'
 
 export async function userRoutes(app: FastifyInstance) {
+  // GET /api/me - Auth0 token info (sub, permissions, roles)
+  app.get('/me', {
+    preHandler: [app.authenticate]
+  }, async (request, reply) => {
+    return { 
+      success: true, 
+      data: {
+        sub: request.auth.sub,
+        permissions: request.auth.permissions,
+        roles: request.auth.roles,
+        email: request.user.email
+      }
+    }
+  })
+
   // GET /api/users/me - Perfil do usuário autenticado
   app.get('/users/me', {
     preHandler: [app.authenticate]

@@ -1,6 +1,13 @@
 import fp from 'fastify-plugin'
 import { FastifyInstance, FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify'
-import { createRemoteJWKSet, jwtVerify } from 'jose'
+import { createRemoteJWKSet, jwtVerify, JWTPayload } from 'jose'
+
+interface Auth0TokenPayload extends JWTPayload {
+  sub: string
+  email?: string
+  permissions?: string[]
+  'https://sociodotabuleiro.com/roles'?: string[]
+}
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -11,19 +18,25 @@ declare module 'fastify' {
       id: string
       email: string
     }
+    auth: {
+      sub: string
+      permissions: string[]
+      roles: string[]
+    }
   }
 }
 
 export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance) => {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
-
-  if (!supabaseUrl) {
-    throw new Error('SUPABASE_URL is required')
-  }
-
+  const issuerBaseUrl = process.env.AUTH0_ISSUER_BASE_URL || 'https://app-sociodotabuleiro.us.auth0.com/'
+  const audience = process.env.AUTH0_AUDIENCE || 'https://api.sociodotabuleiro'
+  
+  const issuer = issuerBaseUrl.endsWith('/') ? issuerBaseUrl : `${issuerBaseUrl}/`
+  
   const JWKS = createRemoteJWKSet(
-    new URL(`${supabaseUrl}/auth/v1/.well-known/jwks.json`)
+    new URL(`${issuer}.well-known/jwks.json`)
   )
+
+  server.log.info({ issuer, audience }, 'Auth0 JWT validation configured')
 
   const authenticate = async (request: FastifyRequest, reply: FastifyReply) => {
     const authHeader = request.headers.authorization
@@ -39,20 +52,29 @@ export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance)
 
     try {
       const { payload } = await jwtVerify(token, JWKS, {
-        issuer: `${supabaseUrl}/auth/v1`,
-        audience: 'authenticated',
+        issuer: issuer,
+        audience: audience,
       })
 
-      if (!payload.sub || !payload.email) {
-        throw new Error('Invalid token payload')
+      const auth0Payload = payload as Auth0TokenPayload
+
+      if (!auth0Payload.sub) {
+        throw new Error('Invalid token payload: missing sub')
       }
 
       request.user = { 
-        id: payload.sub, 
-        email: payload.email as string 
+        id: auth0Payload.sub, 
+        email: auth0Payload.email || '' 
       }
+      
+      request.auth = {
+        sub: auth0Payload.sub,
+        permissions: auth0Payload.permissions || [],
+        roles: auth0Payload['https://sociodotabuleiro.com/roles'] || []
+      }
+      
     } catch (error) {
-      server.log.warn({ error }, 'Authentication failed')
+      server.log.warn({ error }, 'Auth0 authentication failed')
       return reply.status(401).send({ 
         success: false, 
         error: 'Invalid token' 

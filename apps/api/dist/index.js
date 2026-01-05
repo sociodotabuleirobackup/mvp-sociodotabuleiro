@@ -45780,13 +45780,13 @@ function createRemoteJWKSet(url, options) {
 
 // src/plugins/auth.ts
 var authPlugin = (0, import_fastify_plugin2.default)(async (server2) => {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  if (!supabaseUrl) {
-    throw new Error("SUPABASE_URL is required");
-  }
+  const issuerBaseUrl = process.env.AUTH0_ISSUER_BASE_URL || "https://app-sociodotabuleiro.us.auth0.com/";
+  const audience = process.env.AUTH0_AUDIENCE || "https://api.sociodotabuleiro";
+  const issuer = issuerBaseUrl.endsWith("/") ? issuerBaseUrl : `${issuerBaseUrl}/`;
   const JWKS = createRemoteJWKSet(
-    new URL(`${supabaseUrl}/auth/v1/.well-known/jwks.json`)
+    new URL(`${issuer}.well-known/jwks.json`)
   );
+  server2.log.info({ issuer, audience }, "Auth0 JWT validation configured");
   const authenticate = async (request, reply) => {
     const authHeader = request.headers.authorization;
     if (!authHeader?.startsWith("Bearer ")) {
@@ -45798,18 +45798,24 @@ var authPlugin = (0, import_fastify_plugin2.default)(async (server2) => {
     const token = authHeader.split(" ")[1];
     try {
       const { payload } = await jwtVerify(token, JWKS, {
-        issuer: `${supabaseUrl}/auth/v1`,
-        audience: "authenticated"
+        issuer,
+        audience
       });
-      if (!payload.sub || !payload.email) {
-        throw new Error("Invalid token payload");
+      const auth0Payload = payload;
+      if (!auth0Payload.sub) {
+        throw new Error("Invalid token payload: missing sub");
       }
       request.user = {
-        id: payload.sub,
-        email: payload.email
+        id: auth0Payload.sub,
+        email: auth0Payload.email || ""
+      };
+      request.auth = {
+        sub: auth0Payload.sub,
+        permissions: auth0Payload.permissions || [],
+        roles: auth0Payload["https://sociodotabuleiro.com/roles"] || []
       };
     } catch (error) {
-      server2.log.warn({ error }, "Authentication failed");
+      server2.log.warn({ error }, "Auth0 authentication failed");
       return reply.status(401).send({
         success: false,
         error: "Invalid token"
@@ -50003,6 +50009,19 @@ async function sessionRoutes(app) {
 
 // src/routes/users.ts
 async function userRoutes(app) {
+  app.get("/me", {
+    preHandler: [app.authenticate]
+  }, async (request, reply) => {
+    return {
+      success: true,
+      data: {
+        sub: request.auth.sub,
+        permissions: request.auth.permissions,
+        roles: request.auth.roles,
+        email: request.user.email
+      }
+    };
+  });
   app.get("/users/me", {
     preHandler: [app.authenticate]
   }, async (request, reply) => {

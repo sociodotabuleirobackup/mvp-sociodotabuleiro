@@ -46,7 +46,9 @@ VITE_SUPABASE_URL = "${SUPABASE_URL}"
 VITE_SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
 VITE_AUTH0_DOMAIN = "app-sociodotabuleiro.us.auth0.com"
 VITE_AUTH0_CLIENT_ID = "6GjCUlxQN7rY4uaiC9U1eJGMdbF1pvHz"
-VITE_AUTH0_AUDIENCE = "https://api.sociodotabuleiro.com.br"
+VITE_AUTH0_AUDIENCE = "https://api.sociodotabuleiro"
+AUTH0_ISSUER_BASE_URL = "https://app-sociodotabuleiro.us.auth0.com/"
+AUTH0_AUDIENCE = "https://api.sociodotabuleiro"
 
 [deployment]
 deploymentTarget = "autoscale"
