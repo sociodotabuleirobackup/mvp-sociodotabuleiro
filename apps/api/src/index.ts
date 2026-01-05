@@ -58,12 +58,13 @@ async function start() {
     }
 
     // Start server
-    const port = Number(process.env.PORT) || (process.env.NODE_ENV === 'production' ? 5000 : 3001)
-    const host = process.env.HOST || '0.0.0.0'
+    const PORT = Number(process.env.PORT) || 3000
+    const host = '0.0.0.0'
     
-    await server.listen({ port, host })
+    await server.listen({ port: PORT, host })
     
-    server.log.info(`🚀 API Server ready at http://${host}:${port}`)
+    console.log('Listening on', PORT)
+    server.log.info(`🚀 API Server ready at http://${host}:${PORT}`)
   } catch (err) {
     server.log.error(err)
     process.exit(1)
