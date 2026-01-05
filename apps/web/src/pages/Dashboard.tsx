@@ -1,11 +1,47 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../store';
 import { UserRole } from '@socio-do-tabuleiro/shared';
 import { Link } from 'react-router';
+import { api } from '../services/api';
+
+interface ApiMeResponse {
+  sub: string;
+  permissions: string[];
+  roles: string[];
+  email: string;
+}
 
 export const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const [apiStatus, setApiStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [apiData, setApiData] = useState<ApiMeResponse | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      testApiCall();
+    }
+  }, [isAuthenticated]);
+
+  const testApiCall = async () => {
+    setApiStatus('loading');
+    try {
+      const result = await api.get<ApiMeResponse>('/api/me');
+      console.log('API /api/me response:', result);
+      if (result.success && result.data) {
+        setApiStatus('success');
+        setApiData(result.data);
+      } else {
+        setApiStatus('error');
+        setApiError(result.error || 'Unknown error');
+      }
+    } catch (err) {
+      console.error('API call failed:', err);
+      setApiStatus('error');
+      setApiError(err instanceof Error ? err.message : 'Request failed');
+    }
+  };
 
   if (!user) return null;
 
@@ -25,6 +61,41 @@ export const Dashboard: React.FC = () => {
           <p className="text-sm text-white font-bold">{user.name}</p>
           <p className="text-xs text-gray-400">{user.email}</p>
         </div>
+      </div>
+
+      <div className={`mb-6 p-4 rounded-xl border ${
+        apiStatus === 'success' ? 'bg-blue-500/10 border-blue-500/30' :
+        apiStatus === 'error' ? 'bg-red-500/10 border-red-500/30' :
+        'bg-yellow-500/10 border-yellow-500/30'
+      }`}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-bold text-sm">
+            API Test: GET /api/me
+          </span>
+          <span className={`text-xs font-mono px-2 py-1 rounded ${
+            apiStatus === 'success' ? 'bg-blue-500/20 text-blue-400' :
+            apiStatus === 'error' ? 'bg-red-500/20 text-red-400' :
+            'bg-yellow-500/20 text-yellow-400'
+          }`}>
+            {apiStatus === 'success' ? '200 OK' : 
+             apiStatus === 'error' ? '401/ERROR' : 
+             'Loading...'}
+          </span>
+        </div>
+        {apiStatus === 'success' && apiData && (
+          <pre className="text-xs text-gray-400 font-mono bg-black/30 p-2 rounded overflow-x-auto">
+{JSON.stringify(apiData, null, 2)}
+          </pre>
+        )}
+        {apiStatus === 'error' && (
+          <p className="text-xs text-red-400">{apiError}</p>
+        )}
+        <button 
+          onClick={testApiCall}
+          className="mt-2 text-xs text-primary hover:underline"
+        >
+          Retry API Call
+        </button>
       </div>
       
       {user.role === UserRole.MASTER && <MasterDashboard />}

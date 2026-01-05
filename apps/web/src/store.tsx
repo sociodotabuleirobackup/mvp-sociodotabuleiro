@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { User, UserRole, Notification, ContractStatus } from '@socio-do-tabuleiro/shared';
+import { setAuthFunctions } from './services/api';
 
 interface AuthContextType {
   user: User | null;
@@ -12,6 +13,7 @@ interface AuthContextType {
   markAsRead: (id: string) => void;
   updateContractStatus: (status: ContractStatus) => void;
   setUserRole: (role: UserRole) => void;
+  getAccessToken: () => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,11 +24,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: auth0Loading, 
     user: auth0User,
     loginWithRedirect,
-    logout: auth0Logout
+    logout: auth0Logout,
+    getAccessTokenSilently
   } = useAuth0();
   
   const [user, setUser] = useState<User | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const getAccessToken = async (): Promise<string> => {
+    const token = await getAccessTokenSilently({
+      authorizationParams: {
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        scope: 'openid profile email'
+      }
+    });
+    return token;
+  };
+
+  const login = () => {
+    loginWithRedirect();
+  };
+
+  useEffect(() => {
+    setAuthFunctions(getAccessToken, login);
+  }, []);
 
   useEffect(() => {
     if (auth0Authenticated && auth0User) {
@@ -57,10 +78,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setNotifications([]);
     }
   }, [user]);
-
-  const login = () => {
-    loginWithRedirect();
-  };
 
   const logout = () => {
     localStorage.removeItem('userRole');
@@ -102,7 +119,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       notifications, 
       markAsRead, 
       updateContractStatus,
-      setUserRole
+      setUserRole,
+      getAccessToken
     }}>
       {children}
     </AuthContext.Provider>

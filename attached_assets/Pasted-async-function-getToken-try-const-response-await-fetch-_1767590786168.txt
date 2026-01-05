@@ -1,0 +1,41 @@
+async function getToken() {
+  try {
+      const response = await fetch('https://app-sociodotabuleiro.us.auth0.com/oauth/token', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          "client_id":"qm2vfRYSGSfVLidoXVtzGcXbCLGHmhUI",
+          "client_secret":"O0g-3Fta-HUW6ro56PAKIuLQhHFdmhSxtq1Jqs3_YkJL2DW5YSk-f447lOoDSkDN",
+          "audience":"https://api.sociodotabuleiro",
+          "grant_type":"client_credentials"
+        }),
+      });
+
+      if (!response.ok) {
+          throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      console.log(data);
+  } catch (error) {
+      console.error('Error fetching token:', error);
+  }
+};
+In this example, client_id and client_secret are the ones from the Socio do Tabuleiro API (Test Application) application. You can change these values with any from your other authorized applications.
+
+Response
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkVCdUdUaldUSkprRU1ianpJXzV2NyJ9.eyJpc3MiOiJodHRwczovL2FwcC1zb2Npb2RvdGFidWxlaXJvLnVzLmF1dGgwLmNvbS8iLCJzdWIiOiJxbTJ2ZlJZU0dTZlZMaWRvWFZ0ekdjWGJDTEdIbWhVSUBjbGllbnRzIiwiYXVkIjoiaHR0cHM6Ly9hcGkuc29jaW9kb3RhYnVsZWlybyIsImlhdCI6MTc2NzU5MDc1NCwiZXhwIjoxNzY3Njc3MTU0LCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJhenAiOiJxbTJ2ZlJZU0dTZlZMaWRvWFZ0ekdjWGJDTEdIbWhVSSJ9.BHC3U3JJz1J7WWgEQQ6YXuUsC2qF-5WF-n0VxCNqz4o0B-jGVK5PrTFZ4xgbd5UDAhw-s0CoM5MrInzBAohWxvwsufoXoKXL55HaCZ-Q9p9wJ3wUIxfDKMe-2_HZPa1RlfiIozxdt894YL1ieNUqMOmWORg8_AGdJvVeZti8rzxyjQKsfNIr5Mz3a3jlWToQuFLMiAvjrq_RJFe_FptCzXKP5q2BN0_iBQ4D9HrOsi1m8EHEGLHZT6vt7w8N3zPpyRuOWVzK0N3SRgw3ri0V8ej9_dqtjZLqZdBjGJbqidMppT3ypI6l7UeYLGG33ul0DPxfdJivp7622CImMwIIOw",
+  "token_type": "Bearer"
+}
+You can inspect how this token is built at jwt.io
+
+You can now extract the access_token property from the response to make authorized requests to your API.
+
+Sending the token to the API
+
+You can use this bearer token with an Authorization Header in your request to obtain authorized access to your API.
+
+curl --request GET \
+  --url http://path_to_your_api/ \
+  --header 'authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkVCdUdUaldUSkprRU1ianpJXzV2NyJ9.eyJpc3MiOiJodHRwczovL2FwcC1zb2Npb2RvdGFidWxlaXJvLnVzLmF1dGgwLmNvbS8iLCJzdWIiOiJxbTJ2ZlJZU0dTZlZMaWRvWFZ0ekdjWGJDTEdIbWhVSUBjbGllbnRzIiwiYXVkIjoiaHR0cHM6Ly9hcGkuc29jaW9kb3RhYnVsZWlybyIsImlhdCI6MTc2NzU5MDc1NCwiZXhwIjoxNzY3Njc3MTU0LCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJhenAiOiJxbTJ2ZlJZU0dTZlZMaWRvWFZ0ekdjWGJDTEdIbWhVSSJ9.BHC3U3JJz1J7WWgEQQ6YXuUsC2qF-5WF-n0VxCNqz4o0B-jGVK5PrTFZ4xgbd5UDAhw-s0CoM5MrInzBAohWxvwsufoXoKXL55HaCZ-Q9p9wJ3wUIxfDKMe-2_HZPa1RlfiIozxdt894YL1ieNUqMOmWORg8_AGdJvVeZti8rzxyjQKsfNIr5Mz3a3jlWToQuFLMiAvjrq_RJFe_FptCzXKP5q2BN0_iBQ4D9HrOsi1m8EHEGLHZT6vt7w8N3zPpyRuOWVzK0N3SRgw3ri0V8ej9_dqtjZLqZdBjGJbqidMppT3ypI6l7UeYLGG33ul0DPxfdJivp7622CImMwIIOw'
