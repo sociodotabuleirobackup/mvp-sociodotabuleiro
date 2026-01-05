@@ -4,6 +4,8 @@
   "private": true,
   "description": "Marketplace para Mestres, Lojistas e Jogadores de RPG",
   "scripts": {
+    "start": "pnpm --filter @socio-do-tabuleiro/api dev",
+    "dev": "pnpm --filter @socio-do-tabuleiro/api dev & pnpm --filter @socio-do-tabuleiro/web dev",
     "dev:api": "pnpm --filter @socio-do-tabuleiro/api dev",
     "dev:web": "pnpm --filter @socio-do-tabuleiro/web dev",
     "dev:mobile": "pnpm --filter @socio-do-tabuleiro/mobile start",

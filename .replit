@@ -12,10 +12,6 @@ externalPort = 3001
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 5001
-externalPort = 3000
-
 [agent]
 expertMode = true
 
@@ -40,7 +36,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pnpm run dev:web"
+args = "pnpm start"
 waitForPort = 5000
 
 [userenv]
