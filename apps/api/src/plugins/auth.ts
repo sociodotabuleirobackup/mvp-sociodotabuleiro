@@ -12,6 +12,8 @@ interface Auth0TokenPayload extends JWTPayload {
 declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>
+    requirePermission: (permission: string) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>
+    requireAnyPermission: (permissions: string[]) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>
   }
   interface FastifyRequest {
     user: {
@@ -83,4 +85,34 @@ export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance)
   }
 
   server.decorate('authenticate', authenticate)
+
+  const requirePermission = (permission: string) => {
+    return async (request: FastifyRequest, reply: FastifyReply) => {
+      await authenticate(request, reply)
+      
+      if (!request.auth?.permissions?.includes(permission)) {
+        return reply.status(403).send({
+          success: false,
+          error: `Missing required permission: ${permission}`
+        })
+      }
+    }
+  }
+
+  const requireAnyPermission = (permissions: string[]) => {
+    return async (request: FastifyRequest, reply: FastifyReply) => {
+      await authenticate(request, reply)
+      
+      const hasPermission = permissions.some(p => request.auth?.permissions?.includes(p))
+      if (!hasPermission) {
+        return reply.status(403).send({
+          success: false,
+          error: `Missing required permission. Need one of: ${permissions.join(', ')}`
+        })
+      }
+    }
+  }
+
+  server.decorate('requirePermission', requirePermission)
+  server.decorate('requireAnyPermission', requireAnyPermission)
 })

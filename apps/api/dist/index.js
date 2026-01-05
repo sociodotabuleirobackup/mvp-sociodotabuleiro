@@ -45823,6 +45823,31 @@ var authPlugin = (0, import_fastify_plugin2.default)(async (server2) => {
     }
   };
   server2.decorate("authenticate", authenticate);
+  const requirePermission = (permission) => {
+    return async (request, reply) => {
+      await authenticate(request, reply);
+      if (!request.auth?.permissions?.includes(permission)) {
+        return reply.status(403).send({
+          success: false,
+          error: `Missing required permission: ${permission}`
+        });
+      }
+    };
+  };
+  const requireAnyPermission = (permissions) => {
+    return async (request, reply) => {
+      await authenticate(request, reply);
+      const hasPermission = permissions.some((p) => request.auth?.permissions?.includes(p));
+      if (!hasPermission) {
+        return reply.status(403).send({
+          success: false,
+          error: `Missing required permission. Need one of: ${permissions.join(", ")}`
+        });
+      }
+    };
+  };
+  server2.decorate("requirePermission", requirePermission);
+  server2.decorate("requireAnyPermission", requireAnyPermission);
 });
 
 // src/routes/health.ts
