@@ -1,21 +1,27 @@
-
 import React, { useState, useEffect } from 'react';
-// Changed react-router-dom to react-router to fix missing export errors
 import { useNavigate, Link } from 'react-router';
 import { useAuth } from '../store';
 import { UserRole } from '@socio-do-tabuleiro/shared';
 import { Logo } from '../components/Logo';
 
 export const Welcome: React.FC = () => {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, loading, setUserRole } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState<'LANDING' | 'ROLE_SELECT' | 'LOGIN'>('LANDING');
+  const [step, setStep] = useState<'LANDING' | 'ROLE_SELECT'>('LANDING');
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !loading) {
       navigate('/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-white text-xl">Carregando...</div>
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
     return null;
@@ -27,28 +33,16 @@ export const Welcome: React.FC = () => {
   };
 
   const handleLoginClick = () => {
-    setStep('LOGIN');
-    window.scrollTo(0, 0);
+    login();
   };
 
   const handleRoleSelect = (role: UserRole) => {
-    navigate(`/register/${role}`);
+    setUserRole(role);
+    login();
   };
 
   if (step === 'LANDING') {
     return <LandingPage onStart={handleStart} onLogin={handleLoginClick} />;
-  }
-
-  if (step === 'LOGIN') {
-    return (
-      <LoginForm 
-        onBack={() => setStep('LANDING')} 
-        onLogin={(role) => {
-          login(role);
-          navigate('/dashboard');
-        }} 
-      />
-    );
   }
 
   return (
@@ -88,72 +82,6 @@ export const Welcome: React.FC = () => {
           />
         </div>
       </div>
-    </div>
-  );
-};
-
-const LoginForm: React.FC<{ onBack: () => void; onLogin: (role: UserRole) => void }> = ({ onBack, onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  return (
-    <div className="min-h-screen bg-background p-6 flex flex-col items-center justify-center relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-20%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="absolute bottom-[-20%] right-[-20%] w-[500px] h-[500px] bg-accent/10 rounded-full blur-[100px] pointer-events-none"></div>
-
-        <div className="w-full max-w-md z-10 animate-fade-in glass-panel p-8 rounded-2xl border border-white/10 relative">
-            <button onClick={onBack} className="absolute top-6 left-6 flex items-center text-gray-400 hover:text-white transition-colors text-sm">
-                <span className="material-symbols-outlined text-lg mr-1">arrow_back</span> Voltar
-            </button>
-
-            <div className="mt-8">
-              <h2 className="text-3xl font-display font-bold mb-2 text-white">Bem-vindo de volta</h2>
-              <p className="text-gray-400 mb-8 text-sm">Acesse sua conta para continuar sua jornada.</p>
-
-              <div className="space-y-4">
-                  <div>
-                      <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Email</label>
-                      <input 
-                          type="email" 
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="w-full bg-surface border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none transition-colors"
-                          placeholder="seu@email.com"
-                      />
-                  </div>
-                  <div>
-                      <label className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Senha</label>
-                      <input 
-                          type="password" 
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="w-full bg-surface border border-white/10 rounded-lg p-3 text-white focus:border-primary outline-none transition-colors"
-                          placeholder="••••••••"
-                      />
-                  </div>
-                  
-                  <div className="text-right">
-                    <button className="text-xs text-primary hover:text-primary-light transition-colors">Esqueceu a senha?</button>
-                  </div>
-
-                  <button 
-                      onClick={() => onLogin(UserRole.MASTER)}
-                      className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold text-lg shadow-[0_0_20px_rgba(107,38,217,0.4)] transition-all transform active:scale-95 mt-2"
-                  >
-                      Entrar
-                  </button>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-white/5 text-center">
-                  <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-3">Simular Login como (MVP)</p>
-                  <div className="flex justify-center gap-2">
-                      <button onClick={() => onLogin(UserRole.MASTER)} className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 text-gray-300 text-xs border border-white/5 hover:border-primary/30 transition-all">Mestre</button>
-                      <button onClick={() => onLogin(UserRole.PLAYER)} className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 text-gray-300 text-xs border border-white/5 hover:border-primary/30 transition-all">Jogador</button>
-                      <button onClick={() => onLogin(UserRole.VENUE)} className="px-3 py-1 rounded bg-white/5 hover:bg-white/10 text-gray-300 text-xs border border-white/5 hover:border-primary/30 transition-all">Lojista</button>
-                  </div>
-              </div>
-            </div>
-        </div>
     </div>
   );
 };
@@ -219,10 +147,10 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
             A ERA DA INOCÊNCIA ACABOU.
           </h2>
           <div className="space-y-6 text-lg text-gray-400 font-sans leading-relaxed">
-            <p>Disseram que era “apenas um jogo”. Disseram para você crescer. <strong className="text-white block mt-2 text-xl">Eles estavam errados.</strong></p>
+            <p>Disseram que era "apenas um jogo". Disseram para você crescer. <strong className="text-white block mt-2 text-xl">Eles estavam errados.</strong></p>
             <p>Enquanto o world lá fora simula produtividade em reuniões vazias e planilhas cinzas, você gerenciava economias complexas. Você liderava exércitos. Você resolvia crises políticas em mundos que só existiam na sua mente.</p>
             <p className="text-primary-light italic font-serif text-2xl border-l-4 border-primary pl-6 py-2 my-8 text-left">"Você não estava brincando. Você estava treinando."</p>
-            <p>O <strong>Sócio do Tabuleiro</strong> não é “um app de agenda”. É a infraestrutura que transforma a sua imaginação em <strong>sistema</strong>, em <strong>mercado</strong>, em <strong>carreira</strong>.</p>
+            <p>O <strong>Sócio do Tabuleiro</strong> não é "um app de agenda". É a infraestrutura que transforma a sua imaginação em <strong>sistema</strong>, em <strong>mercado</strong>, em <strong>carreira</strong>.</p>
             <p className="text-xl text-white font-display">Porque a imaginação é o petróleo do século 21. <br/> E petróleo sem refinaria é só poça no chão.</p>
           </div>
         </div>
@@ -233,7 +161,7 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
           <ArchetypeCard 
             title="PARA O MESTRE"
             subtitle="(O CRIADOR)"
-            quote="“Sua narrativa é um ativo financeiro.”"
+            quote="Sua narrativa é um ativo financeiro."
             image="https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=2574&auto=format&fit=crop"
             features={[
               "Calculadora de Precificação (Hora/Homem)",
@@ -245,7 +173,7 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
           <ArchetypeCard 
             title="PARA A LUDERIA"
             subtitle="(O TEMPLO)"
-            quote="“O silêncio é prejuízo.”"
+            quote="O silêncio é prejuízo."
             image="https://images.unsplash.com/photo-1563941402622-4e7a488bcc57?q=80&w=2670&auto=format&fit=crop"
             features={[
               "Mapa de Visibilidade (Google Maps)",
@@ -258,7 +186,7 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
           <ArchetypeCard 
             title="PARA O JOGADOR"
             subtitle="(O VIAJANTE)"
-            quote="“Chega de RPG ruim.”"
+            quote="Chega de RPG ruim."
             image="https://images.unsplash.com/photo-1605806616949-1e87b487bc2a?q=80&w=2574&auto=format&fit=crop"
             features={[
               "Busca por proximidade (Maps) e filtros",
@@ -282,7 +210,7 @@ const LandingPage: React.FC<{ onStart: () => void, onLogin: () => void }> = ({ o
             <TechItem 
               icon="verified_user" 
               title="Segurança e Identidade" 
-              desc="Conta, acesso, perfis e permissões com base sólida (Supabase). Menos gambiarra. Mais controle." 
+              desc="Conta, acesso, perfis e permissões com base sólida (Auth0). Menos gambiarra. Mais controle." 
             />
             <TechItem 
               icon="gavel" 

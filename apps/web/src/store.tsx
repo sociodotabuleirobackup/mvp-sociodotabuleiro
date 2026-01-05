@@ -1,59 +1,85 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 import { User, UserRole, Notification, ContractStatus } from '@socio-do-tabuleiro/shared';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (role: UserRole) => void;
+  login: () => void;
   logout: () => void;
   loading: boolean;
   notifications: Notification[];
   markAsRead: (id: string) => void;
   updateContractStatus: (status: ContractStatus) => void;
+  setUserRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { 
+    isAuthenticated: auth0Authenticated, 
+    isLoading: auth0Loading, 
+    user: auth0User,
+    loginWithRedirect,
+    logout: auth0Logout
+  } = useAuth0();
+  
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-    // Simulate initial load
-    setTimeout(() => setLoading(false), 500);
-  }, []);
+    if (auth0Authenticated && auth0User) {
+      const storedRole = localStorage.getItem('userRole') as UserRole || UserRole.PLAYER;
+      
+      const appUser: User = {
+        uid: auth0User.sub || '',
+        name: auth0User.name || auth0User.nickname || 'Usuário',
+        email: auth0User.email || '',
+        role: storedRole,
+        avatarUrl: auth0User.picture || 'https://picsum.photos/200',
+        level: 1,
+        founderPactStatus: storedRole === UserRole.MASTER ? ContractStatus.PENDING_SIGNATURE : ContractStatus.SIGNED,
+        termsAcceptedAt: new Date().toISOString()
+      };
+      setUser(appUser);
+    } else {
+      setUser(null);
+    }
+  }, [auth0Authenticated, auth0User]);
 
   useEffect(() => {
     if (user) {
-      // Mock Notifications
       setNotifications([
-        { id: '1', title: 'Reserva Confirmada', message: 'Sua vaga na mesa "A Maldição de Strahd" foi garantida!', type: 'BOOKING', read: false, date: '10 min atrás', actionLink: '/sessions/1' },
-        { id: '2', title: 'Nova Mensagem', message: 'Mestre Alex: Lembrem de atualizar as fichas...', type: 'CHAT', read: false, date: '1h atrás', actionLink: '/chat' }
+        { id: '1', title: 'Bem-vindo!', message: 'Sua conta foi criada com sucesso.', type: 'BOOKING', read: false, date: 'agora', actionLink: '/dashboard' },
       ]);
     } else {
       setNotifications([]);
     }
   }, [user]);
 
-  const login = (role: UserRole) => {
-    // Mock login
-    const mockUser: User = {
-      uid: 'user_123',
-      name: role === UserRole.MASTER ? 'Mestre Alex' : role === UserRole.VENUE ? 'Caverna do Dragão' : 'Aventureiro John',
-      email: 'test@example.com',
-      role: role,
-      avatarUrl: 'https://picsum.photos/200',
-      level: 5,
-      // Default contract status based on role logic
-      founderPactStatus: role === UserRole.MASTER ? ContractStatus.PENDING_SIGNATURE : ContractStatus.SIGNED, 
-      termsAcceptedAt: new Date().toISOString()
-    };
-    setUser(mockUser);
+  const login = () => {
+    loginWithRedirect();
   };
 
   const logout = () => {
-    setUser(null);
+    localStorage.removeItem('userRole');
+    auth0Logout({ 
+      logoutParams: {
+        returnTo: window.location.origin 
+      }
+    });
+  };
+
+  const setUserRole = (role: UserRole) => {
+    localStorage.setItem('userRole', role);
+    if (user) {
+      setUser({ 
+        ...user, 
+        role,
+        founderPactStatus: role === UserRole.MASTER ? ContractStatus.PENDING_SIGNATURE : ContractStatus.SIGNED
+      });
+    }
   };
 
   const markAsRead = (id: string) => {
@@ -67,7 +93,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, loading, notifications, markAsRead, updateContractStatus }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isAuthenticated: auth0Authenticated, 
+      login, 
+      logout, 
+      loading: auth0Loading, 
+      notifications, 
+      markAsRead, 
+      updateContractStatus,
+      setUserRole
+    }}>
       {children}
     </AuthContext.Provider>
   );

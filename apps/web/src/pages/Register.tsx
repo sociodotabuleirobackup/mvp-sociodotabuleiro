@@ -8,7 +8,7 @@ import { UserRole } from '@socio-do-tabuleiro/shared';
 export const Register: React.FC = () => {
   const { role } = useParams<{ role: UserRole }>();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, setUserRole } = useAuth();
   
   const [step, setStep] = useState(1);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -56,10 +56,10 @@ export const Register: React.FC = () => {
       alert("Você deve aceitar os termos de uso.");
       return;
     }
-    // Mock Registration
+    // Set role and trigger Auth0 login
     console.log("Registered:", formData);
-    login(role as UserRole);
-    navigate('/dashboard');
+    setUserRole(role as UserRole);
+    login();
   };
 
   const toggleSelection = (field: 'genres' | 'systems' | 'amenities', value: string) => {
