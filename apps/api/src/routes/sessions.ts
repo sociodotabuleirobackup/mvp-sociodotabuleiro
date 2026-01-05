@@ -9,7 +9,7 @@ export async function sessionRoutes(app: FastifyInstance) {
         where: { status: 'OPEN' },
         include: {
           master: true,
-          venue: true,
+          store: true,
           _count: { select: { bookings: true } }
         },
         orderBy: { scheduledAt: 'asc' }
@@ -33,11 +33,12 @@ export async function sessionRoutes(app: FastifyInstance) {
       const data = createSessionSchema.parse(request.body)
       
       // Verificar se usuário é MASTER
-      const profile = await app.prisma.profile.findUnique({
-        where: { id: request.user.id }
+      const user = await app.prisma.user.findUnique({
+        where: { id: request.user.id },
+        include: { masterProfile: true }
       })
 
-      if (profile?.role !== 'MASTER') {
+      if (user?.role !== 'MASTER' || !user.masterProfile) {
         return reply.status(403).send({
           success: false,
           error: 'Only masters can create sessions'
@@ -46,8 +47,14 @@ export async function sessionRoutes(app: FastifyInstance) {
 
       const session = await app.prisma.session.create({
         data: {
-          ...data,
-          masterId: request.user.id
+          title: data.title,
+          description: data.description,
+          gameSystem: data.system,
+          maxPlayers: data.playersMax,
+          price: data.price,
+          duration: 180,
+          scheduledAt: new Date(data.date),
+          masterId: user.masterProfile.id
         },
         include: {
           master: true

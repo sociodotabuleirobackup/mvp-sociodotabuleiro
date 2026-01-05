@@ -41,11 +41,10 @@ async function start() {
 
     // Serve static files from web app build (production only)
     if (process.env.NODE_ENV === 'production') {
-      const webDistPath = path.join(__dirname, '../../web/dist')
+      const webDistPath = path.resolve(process.cwd(), 'apps/web/dist')
       await server.register(fastifyStatic, {
         root: webDistPath,
-        prefix: '/',
-        decorateReply: false
+        prefix: '/'
       })
       
       // SPA fallback - serve index.html for all non-API routes

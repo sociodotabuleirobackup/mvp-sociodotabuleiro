@@ -43,11 +43,21 @@ The project uses a **pnpm workspace monorepo** with clear separation between app
 
 **API Server** (`apps/api/`)
 - **Framework**: Fastify 4 with TypeScript
+- **Build Tool**: esbuild (bundles to single dist/index.js)
 - **Authentication**: JWT verification using Supabase JWKS endpoint (via `jose` library)
 - **Rate Limiting**: Built-in via `@fastify/rate-limit`
 - **CORS**: Configured via `@fastify/cors`
+- **Static Files**: @fastify/static (v7.0.4) serves frontend in production
 - **Validation**: Zod schemas from shared package
 - **Logging**: Pino logger with pretty-print in development
+
+### Production Deployment
+
+**Single-Origin Architecture**: Backend serves both API and frontend from port 5000
+- Production start: `pnpm run start` builds web and API, then runs Node.js server
+- Backend serves static files from `apps/web/dist` when `NODE_ENV=production`
+- SPA fallback configured for client-side routing
+- Health endpoints: `/health` (simple), `/healthz` (with database check)
 
 ### Database Layer
 

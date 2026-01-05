@@ -4,7 +4,7 @@
   "private": true,
   "description": "Marketplace para Mestres, Lojistas e Jogadores de RPG",
   "scripts": {
-    "start": "pnpm --filter @socio-do-tabuleiro/api dev",
+    "start": "pnpm run build:web && pnpm run build:api && NODE_ENV=production node apps/api/dist/index.js",
     "dev": "pnpm --filter @socio-do-tabuleiro/api dev & pnpm --filter @socio-do-tabuleiro/web dev",
     "dev:api": "pnpm --filter @socio-do-tabuleiro/api dev",
     "dev:web": "pnpm --filter @socio-do-tabuleiro/web dev",
@@ -25,5 +25,8 @@
   "devDependencies": {
     "@types/node": "^20.11.0",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "esbuild": "^0.27.2"
   }
 }

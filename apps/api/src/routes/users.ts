@@ -7,18 +7,22 @@ export async function userRoutes(app: FastifyInstance) {
     preHandler: [app.authenticate]
   }, async (request, reply) => {
     try {
-      const profile = await app.prisma.profile.findUnique({
-        where: { id: request.user.id }
+      const user = await app.prisma.user.findUnique({
+        where: { id: request.user.id },
+        include: {
+          masterProfile: true,
+          storeProfile: true
+        }
       })
 
-      if (!profile) {
+      if (!user) {
         return reply.status(404).send({
           success: false,
           error: 'User not found'
         })
       }
 
-      return { success: true, data: profile }
+      return { success: true, data: user }
     } catch (error) {
       app.log.error({ error }, 'Failed to fetch user')
       return reply.status(500).send({
@@ -35,12 +39,15 @@ export async function userRoutes(app: FastifyInstance) {
     try {
       const data = updateUserSchema.parse(request.body)
       
-      const profile = await app.prisma.profile.update({
+      const user = await app.prisma.user.update({
         where: { id: request.user.id },
-        data
+        data: {
+          name: data.name,
+          avatar: data.avatarUrl
+        }
       })
 
-      return { success: true, data: profile }
+      return { success: true, data: user }
     } catch (error) {
       if (error instanceof Error && error.name === 'ZodError') {
         return reply.status(400).send({
@@ -65,13 +72,22 @@ export async function userRoutes(app: FastifyInstance) {
     try {
       const data = createMasterProfileSchema.parse(request.body)
       
-      // Atualizar role do usuário para MASTER
-      const profile = await app.prisma.profile.update({
+      // Atualizar role do usuário para MASTER e criar perfil de mestre
+      const user = await app.prisma.user.update({
         where: { id: request.user.id },
         data: { role: 'MASTER' }
       })
 
-      return reply.status(201).send({ success: true, data: profile })
+      const masterProfile = await app.prisma.masterProfile.upsert({
+        where: { userId: request.user.id },
+        update: { bio: data.bio },
+        create: {
+          userId: request.user.id,
+          bio: data.bio
+        }
+      })
+
+      return reply.status(201).send({ success: true, data: { user, masterProfile } })
     } catch (error) {
       if (error instanceof Error && error.name === 'ZodError') {
         return reply.status(400).send({
