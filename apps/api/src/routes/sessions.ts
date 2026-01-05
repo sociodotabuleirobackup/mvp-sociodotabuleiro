@@ -39,7 +39,7 @@ export async function sessionRoutes(app: FastifyInstance) {
       const data = createSessionSchema.parse(request.body)
       
       const user = await app.prisma.user.findUnique({
-        where: { id: request.user.id },
+        where: { auth0Sub: request.auth.sub },
         include: { masterProfile: true }
       })
 

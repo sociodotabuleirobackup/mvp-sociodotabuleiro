@@ -50061,7 +50061,7 @@ async function sessionRoutes(app) {
     try {
       const data = createSessionSchema.parse(request.body);
       const user = await app.prisma.user.findUnique({
-        where: { id: request.user.id },
+        where: { auth0Sub: request.auth.sub },
         include: { masterProfile: true }
       });
       if (!user) {
@@ -50187,22 +50187,52 @@ async function userRoutes(app) {
   app.get("/me", {
     preHandler: [app.authenticate]
   }, async (request, reply) => {
-    return {
-      success: true,
-      data: {
-        sub: request.auth.sub,
-        permissions: request.auth.permissions,
-        roles: request.auth.roles,
-        email: request.user.email
-      }
-    };
+    try {
+      const user = await app.prisma.user.upsert({
+        where: { auth0Sub: request.auth.sub },
+        update: {
+          ...request.user.email && { email: request.user.email }
+        },
+        create: {
+          auth0Sub: request.auth.sub,
+          email: request.user.email || null,
+          name: null,
+          role: "PLAYER"
+        },
+        include: {
+          masterProfile: true,
+          storeProfile: true
+        }
+      });
+      request.user.id = user.id;
+      return {
+        success: true,
+        data: {
+          id: user.id,
+          auth0Sub: user.auth0Sub,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          permissions: request.auth.permissions,
+          roles: request.auth.roles,
+          masterProfile: user.masterProfile,
+          storeProfile: user.storeProfile
+        }
+      };
+    } catch (error) {
+      app.log.error({ error }, "Failed to upsert user");
+      return reply.status(500).send({
+        success: false,
+        error: "Internal server error"
+      });
+    }
   });
   app.get("/users/me", {
     preHandler: [app.authenticate]
   }, async (request, reply) => {
     try {
       const user = await app.prisma.user.findUnique({
-        where: { id: request.user.id },
+        where: { auth0Sub: request.auth.sub },
         include: {
           masterProfile: true,
           storeProfile: true
@@ -50211,7 +50241,7 @@ async function userRoutes(app) {
       if (!user) {
         return reply.status(404).send({
           success: false,
-          error: "User not found"
+          error: "User not found. Call /api/me first to provision user."
         });
       }
       return { success: true, data: user };
@@ -50229,7 +50259,7 @@ async function userRoutes(app) {
     try {
       const data = updateUserSchema.parse(request.body);
       const user = await app.prisma.user.update({
-        where: { id: request.user.id },
+        where: { auth0Sub: request.auth.sub },
         data: {
           name: data.name,
           avatar: data.avatarUrl
@@ -50256,15 +50286,24 @@ async function userRoutes(app) {
   }, async (request, reply) => {
     try {
       const data = createMasterProfileSchema.parse(request.body);
+      const existingUser = await app.prisma.user.findUnique({
+        where: { auth0Sub: request.auth.sub }
+      });
+      if (!existingUser) {
+        return reply.status(404).send({
+          success: false,
+          error: "User not found. Call /api/me first to provision user."
+        });
+      }
       const user = await app.prisma.user.update({
-        where: { id: request.user.id },
+        where: { auth0Sub: request.auth.sub },
         data: { role: "MASTER" }
       });
       const masterProfile = await app.prisma.masterProfile.upsert({
-        where: { userId: request.user.id },
+        where: { userId: user.id },
         update: { bio: data.bio },
         create: {
-          userId: request.user.id,
+          userId: user.id,
           bio: data.bio
         }
       });
