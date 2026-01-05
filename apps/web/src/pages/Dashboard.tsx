@@ -2,7 +2,6 @@
 import React from 'react';
 import { useAuth } from '../store';
 import { UserRole } from '@socio-do-tabuleiro/shared';
-// Changed react-router-dom to react-router to fix missing export errors
 import { Link } from 'react-router';
 
 export const Dashboard: React.FC = () => {
@@ -12,6 +11,22 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="p-4 max-w-7xl mx-auto">
+      <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+            <span className="material-symbols-outlined text-green-400">verified</span>
+          </div>
+          <div>
+            <span className="text-green-400 text-sm font-bold">Autenticado via Auth0</span>
+            <p className="text-xs text-gray-400 font-mono">{user.uid}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-white font-bold">{user.name}</p>
+          <p className="text-xs text-gray-400">{user.email}</p>
+        </div>
+      </div>
+      
       {user.role === UserRole.MASTER && <MasterDashboard />}
       {user.role === UserRole.PLAYER && <PlayerDashboard />}
       {user.role === UserRole.VENUE && <VenueDashboard />}

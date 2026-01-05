@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../store';
+import { LogoutButton } from '../components/auth';
 
 export const Profile: React.FC = () => {
   const { user } = useAuth();
@@ -85,7 +86,10 @@ export const Profile: React.FC = () => {
            <section className="pt-4 border-t border-white/10">
               <div className="flex justify-between items-center">
                  <button className="text-gray-400 hover:text-white text-sm underline">Termos de Uso</button>
-                 <button className="text-red-500 hover:text-red-400 text-sm font-bold">Sair da Conta</button>
+                 <LogoutButton className="text-red-500 hover:text-red-400 text-sm font-bold flex items-center gap-2">
+                   <span className="material-symbols-outlined text-sm">logout</span>
+                   Sair da Conta
+                 </LogoutButton>
               </div>
            </section>
         </div>
