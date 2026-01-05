@@ -12,6 +12,7 @@ import { Profile } from './pages/Profile.tsx';
 import { Chat } from './pages/Chat.tsx';
 import { Notifications } from './pages/Notifications.tsx';
 import { Terms, Privacy, Support } from './pages/StaticPages.tsx';
+import { UIPlayground } from './pages/UIPlayground.tsx';
 import { Logo } from './components/Logo.tsx';
 
 // Layout Component
@@ -137,6 +138,9 @@ const App: React.FC = () => {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/help" element={<Support />} />
+          
+          {/* UI Playground */}
+          <Route path="/ui" element={<UIPlayground />} />
           
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

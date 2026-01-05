@@ -74,6 +74,28 @@ The project uses a **pnpm workspace monorepo** with clear separation between app
 - **Utils**: Formatting functions (currency, date), validators (email, CPF)
 - **Constants**: App configuration, API endpoints, UI color palette
 
+### UI Component Library
+
+Base UI components in `apps/web/src/components/ui/`:
+
+| Component | Description |
+|-----------|-------------|
+| `Screen` | Container with max-width 768px, optional padding and centering |
+| `AppHeader` | Header with back/close buttons, title, and subtitle |
+| `Card` | Glass-morphism card with variants: glass, solid, outline, glow |
+| `Button` | Styled button with variants: primary, secondary, outline, ghost, danger |
+| `Badge` / `Chip` | Status badges with color variants and optional icons |
+| `IconCircleGlow` | Circular icon with glow effect, multiple sizes and colors |
+
+**Theme tokens** in `apps/web/src/theme.ts`:
+- Colors: primary (purple), accent (gold), grays, status colors
+- Blur: sm (8px) to xl (32px)
+- Radius: sm (8px) to full
+- Shadows: glow effects and card shadows
+- Glass: light/medium/dark glass morphism presets
+
+**UI Playground**: Access at `/#/ui` to preview all components
+
 ### Service Stubs (Frontend)
 
 The web app includes service stubs for future integrations:
