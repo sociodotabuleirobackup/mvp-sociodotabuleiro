@@ -1,38 +1,22 @@
 import React from 'react';
 
-export const Logo: React.FC<{ className?: string }> = ({ className }) => (
-  <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <defs>
-      <linearGradient id="shieldGrad" x1="100" y1="0" x2="100" y2="200" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#6b26d9"/>
-        <stop offset="1" stopColor="#4c1d95"/>
-      </linearGradient>
-      <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-        <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000" floodOpacity="0.25"/>
-      </filter>
-    </defs>
-    
-    <g filter="url(#shadow)">
-      {/* Shield Base */}
-      <path d="M100 10C50 10 20 50 20 90C20 150 60 180 100 195C140 180 180 150 180 90C180 50 150 10 100 10Z" fill="url(#shieldGrad)" stroke="#FFB800" strokeWidth="6"/>
-      
-      {/* Quadrants Divider */}
-      <path d="M100 10V195M20 90H180" stroke="#FFB800" strokeWidth="2" strokeOpacity="0.5"/>
-      
-      {/* Icon: D20 (Top Left) */}
-      <path d="M60 40L75 50L60 60L45 50Z" fill="white" fillOpacity="0.9"/>
-      <path d="M60 60L75 50L75 70L60 80L45 70L45 50Z" stroke="white" strokeWidth="1.5" fill="none"/>
-      
-      {/* Icon: Cards (Top Right) */}
-      <rect x="120" y="45" width="20" height="28" rx="2" fill="white" transform="rotate(15 130 59)" fillOpacity="0.8"/>
-      <rect x="135" y="45" width="20" height="28" rx="2" fill="#FFB800" transform="rotate(-10 145 59)"/>
-      
-      {/* Icon: Meeple (Bottom Left) */}
-      <path d="M60 115C65 115 65 120 70 120C75 120 75 125 70 130L74 145L60 138L46 145L50 130C45 125 45 120 50 120C55 120 55 115 60 115Z" fill="#FFB800"/>
-      
-      {/* Icon: Chess Pawn (Bottom Right) */}
-      <path d="M140 120C145 120 148 123 148 128C148 135 140 140 140 140C140 140 132 135 132 128C132 123 135 120 140 120Z" fill="white"/>
-      <path d="M135 142H145L148 155H132L135 142Z" fill="white"/>
-    </g>
-  </svg>
+interface LogoProps {
+  className?: string;
+  width?: number;
+  height?: number;
+}
+
+export const Logo: React.FC<LogoProps> = ({ 
+  className = '', 
+  width = 48, 
+  height = 48 
+}) => (
+  <img 
+    src="/logo.png" 
+    alt="Sócio do Tabuleiro" 
+    width={width}
+    height={height}
+    className={className}
+    style={{ objectFit: 'contain' }}
+  />
 );
