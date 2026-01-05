@@ -82,8 +82,30 @@ export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance)
 
       const auth0Payload = payload as Auth0TokenPayload
 
+      if (!auth0Payload.iss || auth0Payload.iss !== issuer) {
+        server.log.warn({ expected: issuer, got: auth0Payload.iss }, 'Token issuer mismatch')
+        return reply.status(401).send({ 
+          success: false, 
+          error: 'Unauthorized',
+          code: 'INVALID_ISSUER'
+        })
+      }
+
+      if (!auth0Payload.aud) {
+        server.log.warn('Token missing audience')
+        return reply.status(401).send({ 
+          success: false, 
+          error: 'Unauthorized',
+          code: 'MISSING_AUDIENCE'
+        })
+      }
+
       if (!auth0Payload.sub) {
-        throw new Error('Invalid token payload: missing sub')
+        return reply.status(401).send({ 
+          success: false, 
+          error: 'Unauthorized',
+          code: 'INVALID_TOKEN'
+        })
       }
 
       request.user = { 
@@ -98,10 +120,14 @@ export const authPlugin: FastifyPluginAsync = fp(async (server: FastifyInstance)
       }
       
     } catch (error) {
-      server.log.warn({ error }, 'Auth0 authentication failed')
+      const isProduction = process.env.NODE_ENV === 'production'
+      if (!isProduction) {
+        server.log.warn({ error }, 'Auth0 authentication failed')
+      }
       return reply.status(401).send({ 
         success: false, 
-        error: 'Invalid token' 
+        error: 'Unauthorized',
+        code: 'AUTHENTICATION_FAILED'
       })
     }
   }
