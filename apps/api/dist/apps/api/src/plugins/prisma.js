@@ -11,7 +11,7 @@ export const prismaPlugin = fp(async (server) => {
         });
     }
     catch (error) {
-        server.log.error('❌ Prisma connection failed:', error);
+        server.log.error({ error }, '❌ Prisma connection failed');
         throw error;
     }
 });

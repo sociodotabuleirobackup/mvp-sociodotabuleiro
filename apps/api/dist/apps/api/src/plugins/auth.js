@@ -29,7 +29,7 @@ export const authPlugin = fp(async (server) => {
             };
         }
         catch (error) {
-            server.log.warn('Authentication failed:', error);
+            server.log.warn({ error }, 'Authentication failed');
             return reply.status(401).send({
                 success: false,
                 error: 'Invalid token'

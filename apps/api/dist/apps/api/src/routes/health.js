@@ -10,7 +10,7 @@ export async function healthRoutes(app) {
             };
         }
         catch (error) {
-            app.log.error('Health check failed:', error);
+            app.log.error({ error }, 'Health check failed');
             return {
                 success: false,
                 status: 'unhealthy',

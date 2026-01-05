@@ -1,4 +1,4 @@
-import { createSessionSchema } from 'shared';
+import { createSessionSchema } from '@socio-do-tabuleiro/shared';
 export async function sessionRoutes(app) {
     // GET /api/sessions - Listar sessões públicas
     app.get('/sessions', async (request, reply) => {
@@ -6,12 +6,8 @@ export async function sessionRoutes(app) {
             const sessions = await app.prisma.session.findMany({
                 where: { status: 'OPEN' },
                 include: {
-                    master: {
-                        include: { user: { select: { name: true, avatar: true } } }
-                    },
-                    store: {
-                        include: { user: { select: { name: true } } }
-                    },
+                    master: true,
+                    venue: true,
                     _count: { select: { bookings: true } }
                 },
                 orderBy: { scheduledAt: 'asc' }
@@ -19,7 +15,7 @@ export async function sessionRoutes(app) {
             return { success: true, data: sessions };
         }
         catch (error) {
-            app.log.error('Failed to fetch sessions:', error);
+            app.log.error({ error }, 'Failed to fetch sessions');
             return reply.status(500).send({
                 success: false,
                 error: 'Internal server error'
@@ -33,11 +29,10 @@ export async function sessionRoutes(app) {
         try {
             const data = createSessionSchema.parse(request.body);
             // Verificar se usuário é MASTER
-            const user = await app.prisma.user.findUnique({
-                where: { id: request.user.id },
-                include: { masterProfile: true }
+            const profile = await app.prisma.profile.findUnique({
+                where: { id: request.user.id }
             });
-            if (!user?.masterProfile) {
+            if (profile?.role !== 'MASTER') {
                 return reply.status(403).send({
                     success: false,
                     error: 'Only masters can create sessions'
@@ -46,25 +41,23 @@ export async function sessionRoutes(app) {
             const session = await app.prisma.session.create({
                 data: {
                     ...data,
-                    masterId: user.masterProfile.id
+                    masterId: request.user.id
                 },
                 include: {
-                    master: {
-                        include: { user: { select: { name: true, avatar: true } } }
-                    }
+                    master: true
                 }
             });
             return reply.status(201).send({ success: true, data: session });
         }
         catch (error) {
-            if (error.name === 'ZodError') {
+            if (error instanceof Error && error.name === 'ZodError') {
                 return reply.status(400).send({
                     success: false,
                     error: 'Validation failed',
                     details: error.issues
                 });
             }
-            app.log.error('Failed to create session:', error);
+            app.log.error({ error }, 'Failed to create session');
             return reply.status(500).send({
                 success: false,
                 error: 'Internal server error'
